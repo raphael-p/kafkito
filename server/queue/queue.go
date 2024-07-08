@@ -27,7 +27,7 @@ type Message struct {
 	TTL       uint32
 }
 
-func AddQueue(queues QueueMap, newQueueName string) error {
+func (queues QueueMap) AddQueue(newQueueName string) error {
 	if len(queues) >= int(config.MAX_QUEUES) {
 		return errors.New(fmt.Sprint(
 			"too many queues, max is: ",
@@ -37,8 +37,7 @@ func AddQueue(queues QueueMap, newQueueName string) error {
 
 	if _, ok := queues[newQueueName]; ok {
 		return errors.New(fmt.Sprint(
-			"queue already exists with name: ",
-			newQueueName,
+			"queue already exists with name: " + newQueueName,
 		))
 	}
 
@@ -51,19 +50,27 @@ func AddQueue(queues QueueMap, newQueueName string) error {
 	return nil
 }
 
-func MakeMessage(header string, body MessageBody, ttl uint32) (Message, error) {
+func MakeMessage(header string, body string, ttl uint32) (Message, error) {
+	if header == "" || body == "" {
+		return Message{}, errors.New("message header or body must not be empty")
+	}
+
 	if len(header) > int(config.MAX_MESSAGE_HEADER_BYTES) {
 		return Message{}, errors.New(fmt.Sprint(
-			"message header is too long, max length is: ",
+			"message header is too long, max is: ",
 			config.MAX_MESSAGE_HEADER_BYTES,
 		))
 	}
 
 	if len(body) > int(config.MAX_MESSAGE_BODY_BYTES) {
 		return Message{}, errors.New(fmt.Sprint(
-			"message body is too long, max length is: ",
+			"message body is too long, max is: ",
 			config.MAX_MESSAGE_BODY_BYTES,
 		))
+	}
+	var messageBody MessageBody
+	for i := 0; i < len(body); i++ {
+		messageBody[i] = body[i]
 	}
 
 	var messageTTL uint32
@@ -76,7 +83,7 @@ func MakeMessage(header string, body MessageBody, ttl uint32) (Message, error) {
 	return Message{
 		UUID:      uuid.New().ID(),
 		Header:    header,
-		Body:      body,
+		Body:      messageBody,
 		CreatedAt: time.Now().Unix(),
 		TTL:       messageTTL,
 	}, nil

@@ -16,6 +16,8 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /createQueue/{name}", resolvers.CreateQueue(queueMap))
+	mux.HandleFunc("GET /queues", resolvers.ListQueues(queueMap))
+	mux.HandleFunc("POST /queue/{name}/publish", resolvers.PublishMessage(queueMap))
 
 	port := os.Getenv(config.PORT_ENVAR)
 	if port == "" {
