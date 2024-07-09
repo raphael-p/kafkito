@@ -11,7 +11,7 @@ const CREATE = "create"
 const DELETE = "delete"
 const LIST = "list"
 const PUBLISH = "publish"
-const SUBSCRIBE = "subscribe"
+const READ = "read"
 
 func main() {
 	flag.Parse()
@@ -28,8 +28,8 @@ func main() {
 		resolvers.DisplayList()
 	} else if flag.Arg(0) == PUBLISH {
 		resolvers.DisplayPublish()
-	} else if flag.Arg(0) == SUBSCRIBE {
-		resolvers.DisplaySubscribe()
+	} else if flag.Arg(0) == READ {
+		resolvers.DisplayRead()
 	} else {
 		resolvers.DiplaySeekHelp("Command not recognised.")
 	}

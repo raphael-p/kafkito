@@ -18,6 +18,7 @@ func main() {
 	mux.HandleFunc("POST /createQueue/{name}", resolvers.CreateQueue(queueMap))
 	mux.HandleFunc("GET /queues", resolvers.ListQueues(queueMap))
 	mux.HandleFunc("POST /queue/{name}/publish", resolvers.PublishMessage(queueMap))
+	// mux.HandleFunc("GET /queue/{name}/messages", )
 
 	port := os.Getenv(config.PORT_ENVAR)
 	if port == "" {

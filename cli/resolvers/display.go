@@ -45,6 +45,6 @@ func DisplayPublish() {
 	fmt.Print("placeholder for 'publish' command\n")
 }
 
-func DisplaySubscribe() {
-	fmt.Print("placeholder for 'subscribe' command\n")
+func DisplayRead() {
+	fmt.Print("placeholder for 'read' command\n")
 }
