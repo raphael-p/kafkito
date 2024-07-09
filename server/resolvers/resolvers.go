@@ -51,6 +51,7 @@ func CreateQueue(queues queue.QueueMap) http.HandlerFunc {
 
 func ListQueues(queues queue.QueueMap) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/csv")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("name,created_at\n"))
 		for _, q := range queues {
