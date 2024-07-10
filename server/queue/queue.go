@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/raphael-p/kafkito/server/config"
+	"github.com/raphael-p/kafkito/server/utils"
 )
+
+var messageAutoInc utils.AutoIncrement
 
 type QueueMap map[string]Queue
 
@@ -16,15 +18,12 @@ type Queue struct {
 	Messages  []Message
 	CreatedAt int64
 }
-
-type MessageBody [config.MAX_MESSAGE_BODY_BYTES]byte
-
 type Message struct {
-	UUID      uint32
+	ID        uint64
 	Header    string
-	Body      MessageBody
+	Body      string
 	CreatedAt int64
-	TTL       uint32
+	TTL       int64
 }
 
 func (queues QueueMap) AddQueue(newQueueName string) error {
@@ -50,7 +49,26 @@ func (queues QueueMap) AddQueue(newQueueName string) error {
 	return nil
 }
 
-func MakeMessage(header string, body string, ttl uint32) (Message, error) {
+// remove messages from queue which have exceded their TTL
+func (queues QueueMap) GetQueue(queueName string) (Queue, bool) {
+	q, ok := queues[queueName]
+	if !ok {
+		return q, false
+	}
+
+	purgedMessages := make([]Message, 0, len(q.Messages))
+	for _, message := range q.Messages {
+		if message.CreatedAt+message.TTL > time.Now().Unix() {
+			purgedMessages = append(purgedMessages, message)
+		}
+	}
+	q.Messages = purgedMessages
+	queues[q.Name] = q
+
+	return q, true
+}
+
+func MakeMessage(header string, body string, ttl int64) (Message, error) {
 	if header == "" || body == "" {
 		return Message{}, errors.New("message header or body must not be empty")
 	}
@@ -68,12 +86,8 @@ func MakeMessage(header string, body string, ttl uint32) (Message, error) {
 			config.MAX_MESSAGE_BODY_BYTES,
 		))
 	}
-	var messageBody MessageBody
-	for i := 0; i < len(body); i++ {
-		messageBody[i] = body[i]
-	}
 
-	var messageTTL uint32
+	var messageTTL int64
 	if ttl == 0 {
 		messageTTL = config.MESSAGE_TTL
 	} else {
@@ -81,9 +95,9 @@ func MakeMessage(header string, body string, ttl uint32) (Message, error) {
 	}
 
 	return Message{
-		UUID:      uuid.New().ID(),
+		ID:        messageAutoInc.ID(),
 		Header:    header,
-		Body:      messageBody,
+		Body:      body,
 		CreatedAt: time.Now().Unix(),
 		TTL:       messageTTL,
 	}, nil

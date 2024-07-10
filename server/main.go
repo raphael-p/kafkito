@@ -6,19 +6,16 @@ import (
 	"os"
 
 	"github.com/raphael-p/kafkito/server/config"
-	"github.com/raphael-p/kafkito/server/queue"
 	"github.com/raphael-p/kafkito/server/resolvers"
 )
 
 func main() {
-	queueMap := make(queue.QueueMap)
-
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /createQueue/{name}", resolvers.CreateQueue(queueMap))
-	mux.HandleFunc("GET /queues", resolvers.ListQueues(queueMap))
-	mux.HandleFunc("POST /queue/{name}/publish", resolvers.PublishMessage(queueMap))
-	// mux.HandleFunc("GET /queue/{name}/messages", )
+	mux.HandleFunc("POST /createQueue/{name}", resolvers.CreateQueue)
+	mux.HandleFunc("GET /queues", resolvers.ListQueues)
+	mux.HandleFunc("POST /queue/{name}/publish", resolvers.PublishMessage)
+	mux.HandleFunc("GET /queue/{name}/messages", resolvers.ReadMessages)
 
 	port := os.Getenv(config.PORT_ENVAR)
 	if port == "" {
