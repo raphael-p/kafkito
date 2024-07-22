@@ -13,7 +13,7 @@ import (
 var queues queue.QueueMap = make(queue.QueueMap)
 
 func CreateQueue(w http.ResponseWriter, r *http.Request) {
-	queueName, ok := parseQueueName(w, r)
+	queueName, ok := parseQueueName(w, r, "name")
 	if !ok {
 		return
 	}
@@ -26,6 +26,28 @@ func CreateQueue(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func DeleteQueue(w http.ResponseWriter, r *http.Request) {
+	queueName, ok := parseQueueName(w, r, "name")
+	if !ok {
+		return
+	}
+	delete(queues, queueName)
+}
+
+func RenameQueue(w http.ResponseWriter, r *http.Request) {
+	q, ok := getQueue(w, r, queues, "oldName")
+	if !ok {
+		return
+	}
+	newName, ok := parseQueueName(w, r, "newName")
+	if !ok {
+		return
+	}
+
+	q.Name = newName
+	queues[q.Name] = q
 }
 
 func ListQueues(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +65,7 @@ func ListQueues(w http.ResponseWriter, r *http.Request) {
 }
 
 func PublishMessage(w http.ResponseWriter, r *http.Request) {
-	q, ok := getQueue(w, r, queues)
+	q, ok := getQueue(w, r, queues, "name")
 	if !ok {
 		return
 	}
@@ -55,7 +77,7 @@ func PublishMessage(w http.ResponseWriter, r *http.Request) {
 				"too many messages in queue, max is: ",
 				config.MAX_QUEUE_LENGTH,
 			),
-			http.StatusBadRequest,
+			http.StatusConflict,
 		)
 		return
 	}
@@ -81,7 +103,7 @@ func PublishMessage(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReadMessages(w http.ResponseWriter, r *http.Request) {
-	q, ok := getQueue(w, r, queues)
+	q, ok := getQueue(w, r, queues, "name")
 	if !ok {
 		return
 	}

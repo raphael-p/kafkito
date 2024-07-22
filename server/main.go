@@ -12,9 +12,10 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /createQueue/{name}", resolvers.CreateQueue)
+	mux.HandleFunc("POST /queue/{name}", resolvers.CreateQueue)
+	mux.HandleFunc("POST /queue/{oldName}/rename/{newName}", resolvers.RenameQueue)
+	mux.HandleFunc("DELETE /queue/{name}", resolvers.DeleteQueue)
 	mux.HandleFunc("GET /queues", resolvers.ListQueues)
-	// TODO: DELETE QUEUE
 	mux.HandleFunc("POST /queue/{name}/publish", resolvers.PublishMessage)
 	mux.HandleFunc("GET /queue/{name}/messages", resolvers.ReadMessages)
 	mux.HandleFunc("DELETE /message/{id}", resolvers.ConsumeMessage)

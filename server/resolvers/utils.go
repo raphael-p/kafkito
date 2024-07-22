@@ -9,8 +9,8 @@ import (
 	"github.com/raphael-p/kafkito/server/queue"
 )
 
-func parseQueueName(w http.ResponseWriter, r *http.Request) (string, bool) {
-	queueName := r.PathValue("name")
+func parseQueueName(w http.ResponseWriter, r *http.Request, pattern string) (string, bool) {
+	queueName := r.PathValue(pattern)
 	errPrefix := "error parsing queue name: "
 
 	if queueName == "" {
@@ -37,7 +37,7 @@ func parseMessageID(w http.ResponseWriter, r *http.Request) (uint64, bool) {
 	errPrefix := "error parsing message ID: "
 
 	if messageIDStr == "" {
-		errBody := errPrefix + "message ID must not be empty"
+		errBody := errPrefix + "must not be empty"
 		http.Error(w, errBody, http.StatusBadRequest)
 		return 0, false
 	}
@@ -49,7 +49,7 @@ func parseMessageID(w http.ResponseWriter, r *http.Request) (uint64, bool) {
 		return 0, false
 	}
 	if messageIDInt <= 0 {
-		errBody := errPrefix + "message ID must be greater than zero"
+		errBody := errPrefix + "must be greater than zero"
 		http.Error(w, errBody, http.StatusBadRequest)
 		return 0, false
 	}
@@ -57,10 +57,10 @@ func parseMessageID(w http.ResponseWriter, r *http.Request) (uint64, bool) {
 	return uint64(messageIDInt), true
 }
 
-func getQueue(w http.ResponseWriter, r *http.Request, queues queue.QueueMap) (queue.Queue, bool) {
+func getQueue(w http.ResponseWriter, r *http.Request, queues queue.QueueMap, pattern string) (queue.Queue, bool) {
 	var q queue.Queue
 
-	queueName, ok := parseQueueName(w, r)
+	queueName, ok := parseQueueName(w, r, pattern)
 	if !ok {
 		return q, false
 	}
@@ -68,7 +68,7 @@ func getQueue(w http.ResponseWriter, r *http.Request, queues queue.QueueMap) (qu
 	q, ok = queues.GetQueue(queueName)
 	if !ok {
 		errBody := "error fetching queue: no queue with name: " + queueName
-		http.Error(w, errBody, http.StatusBadRequest)
+		http.Error(w, errBody, http.StatusConflict)
 		return q, false
 	}
 
