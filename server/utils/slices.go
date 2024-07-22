@@ -1,6 +1,5 @@
 package utils
 
-func RemoveFromSlice[T any](s []T, i int) []T {
-	s[i] = s[len(s)-1]
-	return s[:len(s)-1]
+func RemoveFromSlice[T any](slice []T, index int) []T {
+	return append(slice[:index], slice[index+1:]...)
 }
