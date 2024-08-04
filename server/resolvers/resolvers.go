@@ -46,8 +46,10 @@ func RenameQueue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	oldName := q.Name
 	q.Name = newName
 	queues[q.Name] = q
+	delete(queues, oldName)
 }
 
 func ListQueues(w http.ResponseWriter, r *http.Request) {
