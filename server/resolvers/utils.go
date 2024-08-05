@@ -3,18 +3,28 @@ package resolvers
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/raphael-p/kafkito/server/config"
 	"github.com/raphael-p/kafkito/server/queue"
 )
 
+var queueNamePattern = regexp.MustCompile("^[a-zA-Z0-9_.]*$")
+
 func parseQueueName(w http.ResponseWriter, r *http.Request, pattern string) (string, bool) {
-	queueName := r.PathValue(pattern)
+	queueName := strings.TrimSpace(r.PathValue(pattern))
 	errPrefix := "error parsing queue name: "
 
 	if queueName == "" {
 		errBody := errPrefix + "queue name must not be empty"
+		http.Error(w, errBody, http.StatusBadRequest)
+		return "", false
+	}
+
+	if !queueNamePattern.MatchString(queueName) {
+		errBody := errPrefix + "queue name may only contain letters, numbers, periods, or underscores"
 		http.Error(w, errBody, http.StatusBadRequest)
 		return "", false
 	}

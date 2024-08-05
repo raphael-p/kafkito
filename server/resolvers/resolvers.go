@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -26,6 +27,7 @@ func CreateQueue(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+	log.Printf("queue created: %s\n", queueName)
 }
 
 func DeleteQueue(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +35,9 @@ func DeleteQueue(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+
 	delete(queues, queueName)
+	log.Printf("queue deleted: %s\n", queueName)
 }
 
 func RenameQueue(w http.ResponseWriter, r *http.Request) {
@@ -50,6 +54,7 @@ func RenameQueue(w http.ResponseWriter, r *http.Request) {
 	q.Name = newName
 	queues[q.Name] = q
 	delete(queues, oldName)
+	log.Printf("queue renamed from %s to %s\n", oldName, newName)
 }
 
 func ListQueues(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +102,7 @@ func PublishMessage(w http.ResponseWriter, r *http.Request) {
 	q.Messages = append(q.Messages, message)
 	queues[q.Name] = q
 	w.WriteHeader(http.StatusCreated)
+	log.Printf("published message %d to queue %s\n", message.ID, q.Name)
 }
 
 func ReadMessages(w http.ResponseWriter, r *http.Request) {
@@ -163,6 +169,7 @@ func ConsumeMessage(w http.ResponseWriter, r *http.Request) {
 			writeMessagesCSV(w, []queue.Message{q.Messages[foundIndex]})
 			q.Messages = utils.RemoveFromSlice(q.Messages, foundIndex)
 			queues[q.Name] = q
+			log.Printf("consumed message %d on queue %s\n", messageID, q.Name)
 			return
 		}
 	}
