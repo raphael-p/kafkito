@@ -58,12 +58,7 @@ func ListQueues(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Add("Content-Type", "text/csv")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("name,created_at\n"))
-	for _, q := range queues {
-		w.Write([]byte(fmt.Sprint(q.Name, ",", q.CreatedAt, "\n")))
-	}
+	writeQueuesCSV(w, queues)
 }
 
 func PublishMessage(w http.ResponseWriter, r *http.Request) {
@@ -147,7 +142,7 @@ func ReadMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	displayMessages(w, batch)
+	writeMessagesCSV(w, batch)
 }
 
 func ConsumeMessage(w http.ResponseWriter, r *http.Request) {
@@ -165,7 +160,7 @@ func ConsumeMessage(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if foundIndex > -1 {
-			displayMessages(w, []queue.Message{q.Messages[foundIndex]})
+			writeMessagesCSV(w, []queue.Message{q.Messages[foundIndex]})
 			q.Messages = utils.RemoveFromSlice(q.Messages, foundIndex)
 			queues[q.Name] = q
 			return

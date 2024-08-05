@@ -75,14 +75,20 @@ func getQueue(w http.ResponseWriter, r *http.Request, queues queue.QueueMap, pat
 	return q, true
 }
 
-func displayMessages(w http.ResponseWriter, batch []queue.Message) {
+func writeMessagesCSV(w http.ResponseWriter, messages []queue.Message) {
 	w.Header().Add("Content-Type", "text/csv")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("id,header,body,created_at,ttl\n"))
-	for _, m := range batch {
-		w.Write([]byte(fmt.Sprintf(
-			"%d,%s,%s,%d,%d\n",
-			m.ID, m.Header, m.Body, m.CreatedAt, m.TTL,
-		)))
+	w.Write(queue.MessageCSVHeader)
+	for _, m := range messages {
+		w.Write([]byte(m.ToCSVRow()))
+	}
+}
+
+func writeQueuesCSV(w http.ResponseWriter, queues queue.QueueMap) {
+	w.Header().Add("Content-Type", "text/csv")
+	w.WriteHeader(http.StatusOK)
+	w.Write(queue.QueueCSVHeader)
+	for _, q := range queues {
+		w.Write([]byte(q.ToCSVRow()))
 	}
 }

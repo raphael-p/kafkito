@@ -18,12 +18,31 @@ type Queue struct {
 	Messages  []Message
 	CreatedAt int64
 }
+
+var QueueCSVHeader = []byte("name,message_count,created_at\n")
+
+func (q Queue) ToCSVRow() string {
+	return fmt.Sprintf(
+		"%s,%d,%d\n",
+		q.Name, len(q.Messages), q.CreatedAt,
+	)
+}
+
 type Message struct {
 	ID        uint64
 	Header    string
 	Body      string
 	CreatedAt int64
 	TTL       int64
+}
+
+var MessageCSVHeader = []byte("id,header,body,created_at,ttl\n")
+
+func (m Message) ToCSVRow() string {
+	return fmt.Sprintf(
+		"%d,%s,%s,%d,%d\n",
+		m.ID, m.Header, m.Body, m.CreatedAt, m.TTL,
+	)
 }
 
 func (queues QueueMap) AddQueue(newQueueName string) error {
