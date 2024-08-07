@@ -99,6 +99,10 @@ func MakeMessage(header string, body string, ttl int64) (Message, error) {
 		))
 	}
 
+	if err := utils.CheckNameFormat(header, "message header "); err != nil {
+		return Message{}, err
+	}
+
 	if len(body) > int(config.MAX_MESSAGE_BODY_BYTES) {
 		return Message{}, errors.New(fmt.Sprint(
 			"message body is too long, max is: ",
