@@ -102,7 +102,10 @@ func PublishMessage(w http.ResponseWriter, r *http.Request) {
 	q.Messages = append(q.Messages, message)
 	queues[q.Name] = q
 	w.WriteHeader(http.StatusCreated)
-	log.Printf("published message %d to queue %s\n", message.ID, q.Name)
+	log.Printf(
+		"published message %d with header %s to queue %s\n",
+		message.ID, message.Header, q.Name,
+	)
 }
 
 func ReadMessages(w http.ResponseWriter, r *http.Request) {
