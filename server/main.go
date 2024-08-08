@@ -1,15 +1,17 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 
 	"github.com/raphael-p/kafkito/server/config"
 	"github.com/raphael-p/kafkito/server/resolvers"
+	"github.com/raphael-p/kafkito/server/utils"
 )
 
 func main() {
+	utils.InitLogger()
+	defer utils.CloseLogger()
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /queue/{name}", resolvers.CreateQueue)
@@ -24,7 +26,7 @@ func main() {
 	if port == "" {
 		port = config.DEFAULT_PORT
 	}
-	log.Println("server started on port ", port)
+	utils.LogTrace("server started on port " + port + "\n")
 	err := http.ListenAndServe(":"+port, mux)
-	log.Fatal(err)
+	utils.LogError(err.Error())
 }

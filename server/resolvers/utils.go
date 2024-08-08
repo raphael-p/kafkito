@@ -17,12 +17,12 @@ func parseQueueName(w http.ResponseWriter, r *http.Request, pattern string) (str
 
 	if queueName == "" {
 		errBody := errPrefix + "queue name must not be empty"
-		http.Error(w, errBody, http.StatusBadRequest)
+		writeError(w, errBody, http.StatusBadRequest)
 		return "", false
 	}
 
 	if err := utils.CheckNameFormat(queueName, errPrefix); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		writeError(w, err.Error(), http.StatusBadRequest)
 		return "", false
 	}
 
@@ -32,7 +32,7 @@ func parseQueueName(w http.ResponseWriter, r *http.Request, pattern string) (str
 			"queue name is too long, max is: ",
 			config.MAX_QUEUE_NAME_BYTES,
 		)
-		http.Error(w, errBody, http.StatusBadRequest)
+		writeError(w, errBody, http.StatusBadRequest)
 		return "", false
 	}
 
@@ -45,19 +45,19 @@ func parseMessageID(w http.ResponseWriter, r *http.Request) (uint64, bool) {
 
 	if messageIDStr == "" {
 		errBody := errPrefix + "must not be empty"
-		http.Error(w, errBody, http.StatusBadRequest)
+		writeError(w, errBody, http.StatusBadRequest)
 		return 0, false
 	}
 
 	messageIDInt, err := strconv.Atoi(messageIDStr)
 	if err != nil {
 		errBody := errPrefix + err.Error()
-		http.Error(w, errBody, http.StatusBadRequest)
+		writeError(w, errBody, http.StatusBadRequest)
 		return 0, false
 	}
 	if messageIDInt <= 0 {
 		errBody := errPrefix + "must be greater than zero"
-		http.Error(w, errBody, http.StatusBadRequest)
+		writeError(w, errBody, http.StatusBadRequest)
 		return 0, false
 	}
 
@@ -75,7 +75,7 @@ func getQueue(w http.ResponseWriter, r *http.Request, queues queue.QueueMap, pat
 	q, ok = queues.GetQueue(queueName)
 	if !ok {
 		errBody := "error fetching queue: no queue with name: " + queueName
-		http.Error(w, errBody, http.StatusConflict)
+		writeError(w, errBody, http.StatusConflict)
 		return q, false
 	}
 
@@ -98,4 +98,9 @@ func writeQueuesCSV(w http.ResponseWriter, queues queue.QueueMap) {
 	for _, q := range queues {
 		w.Write([]byte(q.ToCSVRow()))
 	}
+}
+
+func writeError(w http.ResponseWriter, errBody string, code int) {
+	utils.LogWarning(errBody)
+	http.Error(w, errBody, code)
 }

@@ -2,7 +2,6 @@ package resolvers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -22,12 +21,12 @@ func CreateQueue(w http.ResponseWriter, r *http.Request) {
 	err := queues.AddQueue(queueName)
 	if err != nil {
 		errBody := "error adding queue: " + err.Error()
-		http.Error(w, errBody, http.StatusConflict)
+		writeError(w, errBody, http.StatusConflict)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	log.Printf("queue created: %s\n", queueName)
+	utils.LogInfo(fmt.Sprintf("queue created: %s\n", queueName))
 }
 
 func DeleteQueue(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +36,7 @@ func DeleteQueue(w http.ResponseWriter, r *http.Request) {
 	}
 
 	delete(queues, queueName)
-	log.Printf("queue deleted: %s\n", queueName)
+	utils.LogInfo(fmt.Sprintf("queue deleted: %s\n", queueName))
 }
 
 func RenameQueue(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +53,10 @@ func RenameQueue(w http.ResponseWriter, r *http.Request) {
 	q.Name = newName
 	queues[q.Name] = q
 	delete(queues, oldName)
-	log.Printf("queue renamed from %s to %s\n", oldName, newName)
+	utils.LogInfo(fmt.Sprintf(
+		"queue renamed from %s to %s\n",
+		oldName, newName,
+	))
 }
 
 func ListQueues(w http.ResponseWriter, r *http.Request) {
@@ -73,20 +75,17 @@ func PublishMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(q.Messages) >= int(config.MAX_QUEUE_LENGTH) {
-		http.Error(
-			w,
-			fmt.Sprint(
-				"too many messages in queue, max is: ",
-				config.MAX_QUEUE_LENGTH,
-			),
-			http.StatusConflict,
+		errBody := fmt.Sprint(
+			"too many messages in queue, max is: ",
+			config.MAX_QUEUE_LENGTH,
 		)
+		writeError(w, errBody, http.StatusConflict)
 		return
 	}
 
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, "error parsing request body", http.StatusBadRequest)
+		writeError(w, "error parsing request body", http.StatusBadRequest)
 		return
 	}
 	header := r.FormValue("header")
@@ -95,17 +94,17 @@ func PublishMessage(w http.ResponseWriter, r *http.Request) {
 	message, err := queue.MakeMessage(header, body, config.MESSAGE_TTL)
 	if err != nil {
 		errBody := "error creating message: " + err.Error()
-		http.Error(w, errBody, http.StatusBadRequest)
+		writeError(w, errBody, http.StatusBadRequest)
 		return
 	}
 
 	q.Messages = append(q.Messages, message)
 	queues[q.Name] = q
 	w.WriteHeader(http.StatusCreated)
-	log.Printf(
+	utils.LogInfo(fmt.Sprintf(
 		"published message %d with header %s to queue %s\n",
 		message.ID, message.Header, q.Name,
-	)
+	))
 }
 
 func ReadMessages(w http.ResponseWriter, r *http.Request) {
@@ -120,12 +119,12 @@ func ReadMessages(w http.ResponseWriter, r *http.Request) {
 		cursorInt, err := strconv.Atoi(cursorStr)
 		if err != nil {
 			errBody := "error parsing 'cursor' query param: " + err.Error()
-			http.Error(w, errBody, http.StatusBadRequest)
+			writeError(w, errBody, http.StatusBadRequest)
 			return
 		}
 		if cursorInt < 0 {
 			errBody := "error parsing 'cursor' query param: value must be positive"
-			http.Error(w, errBody, http.StatusBadRequest)
+			writeError(w, errBody, http.StatusBadRequest)
 			return
 		}
 		cursorID = uint64(cursorInt)
@@ -172,11 +171,14 @@ func ConsumeMessage(w http.ResponseWriter, r *http.Request) {
 			writeMessagesCSV(w, []queue.Message{q.Messages[foundIndex]})
 			q.Messages = utils.RemoveFromSlice(q.Messages, foundIndex)
 			queues[q.Name] = q
-			log.Printf("consumed message %d on queue %s\n", messageID, q.Name)
+			utils.LogInfo(fmt.Sprintf(
+				"consumed message %d on queue %s\n",
+				messageID, q.Name,
+			))
 			return
 		}
 	}
 
 	errBody := fmt.Sprint("no message found with ID: ", messageID)
-	http.Error(w, errBody, http.StatusNotFound)
+	writeError(w, errBody, http.StatusNotFound)
 }
