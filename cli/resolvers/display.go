@@ -17,7 +17,7 @@ func paginate(text string) {
 	}
 }
 
-func DiplaySeekHelp(prefix string) {
+func DisplaySeekHelp(prefix string) {
 	var space string
 	if prefix != "" {
 		space = " "
@@ -27,24 +27,4 @@ func DiplaySeekHelp(prefix string) {
 
 func DisplayHelp() {
 	paginate(help)
-}
-
-func DisplayCreate() {
-	fmt.Print("placeholder for 'create' command\n")
-}
-
-func DisplayDelete() {
-	fmt.Print("placeholder for 'delete' command\n")
-}
-
-func DisplayList() {
-	fmt.Print("placeholder for 'list' command\n")
-}
-
-func DisplayPublish() {
-	fmt.Print("placeholder for 'publish' command\n")
-}
-
-func DisplayRead() {
-	fmt.Print("placeholder for 'read' command\n")
 }
