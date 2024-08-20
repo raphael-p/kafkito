@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"os"
 
@@ -9,11 +10,27 @@ import (
 	"github.com/raphael-p/kafkito/server/utils"
 )
 
+var server *http.Server
+var gracefulShutdown bool
+
 func main() {
 	utils.InitLogger()
 	defer utils.CloseLogger()
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("GET /ping/kafkito", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	mux.HandleFunc("POST /shutdown", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusAccepted)
+		go func() {
+			gracefulShutdown = true
+			if err := server.Shutdown(context.Background()); err != nil {
+				gracefulShutdown = false
+				utils.LogError("server shutdown failed: " + err.Error())
+			}
+		}()
+	})
 	mux.HandleFunc("POST /queue/{name}", resolvers.CreateQueue)
 	mux.HandleFunc("POST /queue/{oldName}/rename/{newName}", resolvers.RenameQueue)
 	mux.HandleFunc("DELETE /queue/{name}", resolvers.DeleteQueue)
@@ -27,6 +44,13 @@ func main() {
 		port = config.DEFAULT_PORT
 	}
 	utils.LogTrace("server started on port " + port + "\n")
-	err := http.ListenAndServe(":"+port, mux)
-	utils.LogError(err.Error())
+	server = &http.Server{Addr: ":" + port, Handler: mux}
+	gracefulShutdown = false
+	err := server.ListenAndServe()
+
+	if !gracefulShutdown || err.Error() != "http: Server closed" {
+		utils.LogError(err.Error())
+	} else {
+		utils.LogTrace("server shutdown gracefully")
+	}
 }
