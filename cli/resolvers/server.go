@@ -2,10 +2,6 @@ package resolvers
 
 import "fmt"
 
-func StartServer() {
-	fmt.Print("placeholder for 'start' command\n")
-}
-
 func CreateQueue() {
 	fmt.Print("placeholder for 'create' command\n")
 }

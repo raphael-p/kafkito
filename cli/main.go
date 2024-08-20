@@ -7,6 +7,7 @@ import (
 )
 
 const HELP = "help"
+const START_SERVER = "start"
 const CREATE_QUEUE = "create"
 const RENAME_QUEUE = "rename"
 const DELETE_QUEUE = "delete"
@@ -20,6 +21,8 @@ func main() {
 
 	if flag.NArg() == 0 {
 		resolvers.DisplaySeekHelp("Welcome to Kafkito!")
+	} else if flag.Arg(0) == START_SERVER {
+		resolvers.StartServer()
 	} else if flag.Arg(0) == HELP {
 		resolvers.DisplayHelp()
 	} else if flag.Arg(0) == CREATE_QUEUE {
