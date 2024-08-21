@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"net/http"
-	"os"
 
 	"github.com/raphael-p/kafkito/server/config"
 	"github.com/raphael-p/kafkito/server/resolvers"
@@ -15,6 +14,7 @@ var gracefulShutdown bool
 
 func main() {
 	utils.InitLogger()
+	config.ReadConfigFile()
 	defer utils.CloseLogger()
 	mux := http.NewServeMux()
 
@@ -39,10 +39,7 @@ func main() {
 	mux.HandleFunc("GET /queue/{name}/messages", resolvers.ReadMessages)
 	mux.HandleFunc("DELETE /message/{id}", resolvers.ConsumeMessage)
 
-	port := os.Getenv(config.PORT_ENVAR)
-	if port == "" {
-		port = config.DEFAULT_PORT
-	}
+	port := config.Values.Port
 	server = &http.Server{Addr: ":" + port, Handler: mux}
 	gracefulShutdown = false
 	utils.LogTrace("server started on port " + port + "\n")

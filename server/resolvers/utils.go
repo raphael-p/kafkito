@@ -26,11 +26,11 @@ func parseQueueName(w http.ResponseWriter, r *http.Request, pattern string) (str
 		return "", false
 	}
 
-	if len(queueName) > int(config.MAX_QUEUE_NAME_BYTES) {
+	if len(queueName) > int(config.Values.MaxQueueNameBytes) {
 		errBody := fmt.Sprint(
 			errPrefix,
 			"queue name is too long, max is: ",
-			config.MAX_QUEUE_NAME_BYTES,
+			config.Values.MaxQueueNameBytes,
 		)
 		writeError(w, errBody, http.StatusBadRequest)
 		return "", false

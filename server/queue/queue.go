@@ -46,10 +46,10 @@ func (m Message) ToCSVRow() string {
 }
 
 func (queues QueueMap) AddQueue(newQueueName string) error {
-	if len(queues) >= int(config.MAX_QUEUES) {
+	if len(queues) >= int(config.Values.MaxQueues) {
 		return errors.New(fmt.Sprint(
 			"too many queues, max is: ",
-			config.MAX_QUEUES,
+			config.Values.MaxQueues,
 		))
 	}
 
@@ -61,7 +61,7 @@ func (queues QueueMap) AddQueue(newQueueName string) error {
 
 	queues[newQueueName] = Queue{
 		Name:      newQueueName,
-		Messages:  make([]Message, 0, config.MAX_QUEUE_LENGTH),
+		Messages:  make([]Message, 0, config.Values.MaxQueueLength),
 		CreatedAt: time.Now().Unix(),
 	}
 
@@ -92,10 +92,10 @@ func MakeMessage(header string, body string, ttl int64) (Message, error) {
 		return Message{}, errors.New("message header or body must not be empty")
 	}
 
-	if len(header) > int(config.MAX_MESSAGE_HEADER_BYTES) {
+	if len(header) > int(config.Values.MaxMessageHeaderBytes) {
 		return Message{}, errors.New(fmt.Sprint(
 			"message header is too long, max is: ",
-			config.MAX_MESSAGE_HEADER_BYTES,
+			config.Values.MaxMessageHeaderBytes,
 		))
 	}
 
@@ -103,16 +103,16 @@ func MakeMessage(header string, body string, ttl int64) (Message, error) {
 		return Message{}, err
 	}
 
-	if len(body) > int(config.MAX_MESSAGE_BODY_BYTES) {
+	if len(body) > int(config.Values.MaxMessageBodyBytes) {
 		return Message{}, errors.New(fmt.Sprint(
 			"message body is too long, max is: ",
-			config.MAX_MESSAGE_BODY_BYTES,
+			config.Values.MaxMessageBodyBytes,
 		))
 	}
 
 	var messageTTL int64
 	if ttl == 0 {
-		messageTTL = config.MESSAGE_TTL
+		messageTTL = config.Values.MessageTTL
 	} else {
 		messageTTL = ttl
 	}

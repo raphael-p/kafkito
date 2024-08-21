@@ -74,10 +74,10 @@ func PublishMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(q.Messages) >= int(config.MAX_QUEUE_LENGTH) {
+	if len(q.Messages) >= int(config.Values.MaxQueueLength) {
 		errBody := fmt.Sprint(
 			"too many messages in queue, max is: ",
-			config.MAX_QUEUE_LENGTH,
+			config.Values.MaxQueueLength,
 		)
 		writeError(w, errBody, http.StatusConflict)
 		return
@@ -91,7 +91,7 @@ func PublishMessage(w http.ResponseWriter, r *http.Request) {
 	header := r.FormValue("header")
 	body := r.FormValue("body")
 
-	message, err := queue.MakeMessage(header, body, config.MESSAGE_TTL)
+	message, err := queue.MakeMessage(header, body, config.Values.MessageTTL)
 	if err != nil {
 		errBody := "error creating message: " + err.Error()
 		writeError(w, errBody, http.StatusBadRequest)
@@ -130,9 +130,9 @@ func ReadMessages(w http.ResponseWriter, r *http.Request) {
 		cursorID = uint64(cursorInt)
 	}
 
-	batch := make([]queue.Message, 0, config.MESSAGE_BATCH_SIZE)
+	batch := make([]queue.Message, 0, config.Values.MessageBatchSize)
 	for _, m := range q.Messages {
-		if len(batch) >= int(config.MESSAGE_BATCH_SIZE) {
+		if len(batch) >= int(config.Values.MessageBatchSize) {
 			break
 		}
 		if m.ID > cursorID {
