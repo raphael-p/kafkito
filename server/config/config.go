@@ -23,16 +23,15 @@ type config struct {
 }
 
 func ReadConfigFile() {
-	logFilepath := filepath.Join(utils.GetDirectory(), "config.json")
-	file, err := os.Open(logFilepath)
+	configPath := filepath.Join(utils.GetDirectory(".."), "config.json")
+	file, err := os.Open(configPath)
 	if err != nil {
-		panic(fmt.Sprintf("failed to open config files: %s", err))
+		panic(fmt.Sprintf("failed to open config file: %s", err))
 	}
 	defer file.Close()
 
-	// Unmarshal the JSON into the struct
 	Values = &config{}
 	if err = json.NewDecoder(file).Decode(Values); err != nil {
-		panic(fmt.Sprint("could not parse config file: ", err))
+		panic(fmt.Sprintf("could not parse config file: %s", err))
 	}
 }
