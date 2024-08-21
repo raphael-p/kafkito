@@ -43,9 +43,9 @@ func main() {
 	if port == "" {
 		port = config.DEFAULT_PORT
 	}
-	utils.LogTrace("server started on port " + port + "\n")
 	server = &http.Server{Addr: ":" + port, Handler: mux}
 	gracefulShutdown = false
+	utils.LogTrace("server started on port " + port + "\n")
 	err := server.ListenAndServe()
 
 	if !gracefulShutdown || err.Error() != "http: Server closed" {
