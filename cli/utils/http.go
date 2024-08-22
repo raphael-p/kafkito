@@ -18,22 +18,28 @@ func getPort() (string, error) {
 	return port, nil
 }
 
-func KafkitoGet(endpoint string) (int, string, error) {
+type KafkitoResponse struct {
+	StatusCode int
+	Body       string
+	Error      error
+}
+
+func KafkitoGet(endpoint string) KafkitoResponse {
 	port, err := getPort()
 	if err != nil {
-		return 0, "", err
+		return KafkitoResponse{0, "", err}
 	}
 
 	res, err := http.Get("http://localhost:" + port + endpoint)
 	if err != nil {
-		return 0, "retry", err
+		return KafkitoResponse{0, "retry", err}
 	}
 
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return 0, "", err
+		return KafkitoResponse{0, "", err}
 	}
 
-	return res.StatusCode, string(body), nil
+	return KafkitoResponse{res.StatusCode, string(body), nil}
 }

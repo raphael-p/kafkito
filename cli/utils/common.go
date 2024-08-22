@@ -10,21 +10,24 @@ func PingWithRetry() error {
 	defaultError := fmt.Errorf("ping failed")
 	for i := 1; i <= 5; i++ {
 		time.Sleep(time.Millisecond * 200 * time.Duration(i)) // linear backoff
-		statusCode, body, err := KafkitoGet("/ping/kafkito")
+		response := KafkitoGet("/ping/kafkito")
 
-		if err != nil && body == "retry" && i < 5 {
+		if response.Error != nil && response.Body == "retry" && i < 5 {
 			// retry if there is an error
 			continue
-		} else if err != nil {
+		} else if response.Error != nil {
 			// after fifth retry, show the error
-			defaultError = err
+			defaultError = response.Error
 			break
-		} else if statusCode == http.StatusOK {
+		} else if response.StatusCode == http.StatusOK {
 			// happy path
 			return nil
 		} else {
 			// if server returns an error, show it
-			return fmt.Errorf("status code %d: %s", statusCode, body)
+			return fmt.Errorf(
+				"status code %d: %s",
+				response.Error, response.Body,
+			)
 		}
 	}
 	return defaultError
