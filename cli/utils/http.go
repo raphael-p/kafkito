@@ -3,6 +3,7 @@ package utils
 import (
 	"io"
 	"net/http"
+	"strings"
 )
 
 var port string
@@ -24,13 +25,15 @@ type KafkitoResponse struct {
 	Error      error
 }
 
-func KafkitoGet(endpoint string) KafkitoResponse {
+type MakeHTTPRequest func(port string) (*http.Response, error)
+
+func kafkitoHTTP(makeRequest MakeHTTPRequest) KafkitoResponse {
 	port, err := getPort()
 	if err != nil {
 		return KafkitoResponse{0, "", err}
 	}
 
-	res, err := http.Get("http://localhost:" + port + endpoint)
+	res, err := makeRequest(port)
 	if err != nil {
 		return KafkitoResponse{0, "retry", err}
 	}
@@ -42,4 +45,22 @@ func KafkitoGet(endpoint string) KafkitoResponse {
 	}
 
 	return KafkitoResponse{res.StatusCode, string(body), nil}
+
+}
+
+func KafkitoGet(endpoint string) KafkitoResponse {
+	return kafkitoHTTP(func(port string) (*http.Response, error) {
+		return http.Get("http://localhost:" + port + endpoint)
+	})
+}
+
+func KafkitoPost(endpoint, reqContentType, reqBody string) KafkitoResponse {
+	return kafkitoHTTP(func(port string) (*http.Response, error) {
+		var reqBodyReader io.Reader = strings.NewReader(reqBody)
+		return http.Post(
+			"http://localhost:"+port+endpoint,
+			reqContentType,
+			reqBodyReader,
+		)
+	})
 }
