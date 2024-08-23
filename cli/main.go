@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"strings"
 
 	"github.com/raphael-p/kafkito/cli/resolvers"
 	"github.com/raphael-p/kafkito/cli/utils"
@@ -45,7 +47,11 @@ func main() {
 	} else if flag.Arg(0) == HELP {
 		resolvers.DisplayHelp()
 	} else if flag.Arg(0) == CREATE_QUEUE {
-		resolvers.CreateQueue()
+		if !validateArgs("queueName") {
+			fmt.Println("expected: kafkito create <queueName>")
+			return
+		}
+		resolvers.CreateQueue(flag.Arg(1))
 	} else if flag.Arg(0) == DELETE_QUEUE {
 		resolvers.DeleteQueue()
 	} else if flag.Arg(0) == LIST_QUEUES {
@@ -59,4 +65,17 @@ func main() {
 	} else {
 		resolvers.DisplaySeekHelp("Command not recognised.")
 	}
+}
+
+func validateArgs(args ...string) bool {
+	for idx := range args {
+		if flag.Arg(idx+1) == "" {
+			fmt.Println(
+				"missing arg(s):",
+				strings.Join(args[idx:], ", "),
+			)
+			return false
+		}
+	}
+	return true
 }

@@ -1,9 +1,36 @@
 package resolvers
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
 
-func CreateQueue() {
-	fmt.Print("placeholder for 'create' command\n")
+	"github.com/raphael-p/kafkito/cli/utils"
+)
+
+func handleFailure(response utils.KafkitoResponse, successStatus int) bool {
+	if response.Error != nil {
+		fmt.Println("error: kafkito is not running on port", utils.GetPort())
+		return true
+	}
+
+	if response.StatusCode != successStatus {
+		fmt.Printf(
+			"error: status code %d: %s",
+			response.StatusCode, response.Body,
+		)
+		return true
+	}
+
+	return false
+}
+
+func CreateQueue(queueName string) {
+	response := utils.KafkitoPost("/queue/"+queueName, "", "")
+	if handleFailure(response, http.StatusCreated) {
+		return
+	}
+
+	fmt.Println("queue created:", queueName)
 }
 
 func DeleteQueue() {

@@ -20,7 +20,7 @@ func StartServer() {
 		return
 	}
 
-	fmt.Println("kafkito is runing on port", utils.GetPort())
+	fmt.Println("kafkito is running on port", utils.GetPort())
 }
 
 func StopServer() {
@@ -36,7 +36,7 @@ func StopServer() {
 
 	if response.StatusCode != http.StatusAccepted {
 		fmt.Printf(
-			"kafkito could not be stopped: status code %d: %s\n",
+			"kafkito could not be stopped: status code %d: %s",
 			response.StatusCode, response.Body,
 		)
 		return
@@ -55,11 +55,11 @@ func ServerInfo() {
 
 	if response.StatusCode != http.StatusOK {
 		fmt.Printf(
-			"status code %d: %s\n",
+			"status code %d: %s",
 			response.StatusCode, response.Body,
 		)
 		return
 	}
 
-	fmt.Println("kafkito is runing on port", utils.GetPort())
+	fmt.Println("kafkito is running on port", utils.GetPort())
 }
