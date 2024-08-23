@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -8,15 +9,20 @@ import (
 
 var port string
 
-func getPort() (string, error) {
+func ValidatePort() bool {
 	if port == "" {
 		var err error
 		port, err = readPortNumber()
 		if err != nil {
-			return "", err
+			fmt.Println(err.Error())
+			return false
 		}
 	}
-	return port, nil
+	return true
+}
+
+func GetPort() string {
+	return port
 }
 
 type KafkitoResponse struct {
@@ -25,17 +31,11 @@ type KafkitoResponse struct {
 	Error      error
 }
 
-type MakeHTTPRequest func(port string) (*http.Response, error)
+type MakeHTTPRequest func() (*http.Response, error)
 
-func kafkitoHTTP(makeRequest MakeHTTPRequest) KafkitoResponse {
-	port, err := getPort()
-	if err != nil {
-		return KafkitoResponse{0, "", err}
-	}
-
-	res, err := makeRequest(port)
-	if err != nil {
-		return KafkitoResponse{0, "retry", err}
+func responseHandler(res *http.Response, callError error) KafkitoResponse {
+	if callError != nil {
+		return KafkitoResponse{0, "retry", callError}
 	}
 
 	defer res.Body.Close()
@@ -49,18 +49,16 @@ func kafkitoHTTP(makeRequest MakeHTTPRequest) KafkitoResponse {
 }
 
 func KafkitoGet(endpoint string) KafkitoResponse {
-	return kafkitoHTTP(func(port string) (*http.Response, error) {
-		return http.Get("http://localhost:" + port + endpoint)
-	})
+	return responseHandler(http.Get(
+		"http://localhost:" + GetPort() + endpoint,
+	))
 }
 
 func KafkitoPost(endpoint, reqContentType, reqBody string) KafkitoResponse {
-	return kafkitoHTTP(func(port string) (*http.Response, error) {
-		var reqBodyReader io.Reader = strings.NewReader(reqBody)
-		return http.Post(
-			"http://localhost:"+port+endpoint,
-			reqContentType,
-			reqBodyReader,
-		)
-	})
+	var reqBodyReader io.Reader = strings.NewReader(reqBody)
+	return responseHandler(http.Post(
+		"http://localhost:"+GetPort()+endpoint,
+		reqContentType,
+		reqBodyReader,
+	))
 }

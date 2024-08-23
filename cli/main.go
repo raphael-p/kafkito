@@ -4,6 +4,7 @@ import (
 	"flag"
 
 	"github.com/raphael-p/kafkito/cli/resolvers"
+	"github.com/raphael-p/kafkito/cli/utils"
 )
 
 const HELP = "help"
@@ -20,9 +21,21 @@ const CONSUME_MESSAGE = "consume"
 func main() {
 	flag.Parse()
 
+	// noop commands
 	if flag.NArg() == 0 {
 		resolvers.DisplaySeekHelp("Welcome to Kafkito!")
-	} else if flag.Arg(0) == START_SERVER {
+		return
+	} else if flag.Arg(0) == HELP {
+		resolvers.DisplayHelp()
+		return
+	}
+
+	if !utils.ValidatePort() {
+		return
+	}
+
+	// all other commands (they require a valid port)
+	if flag.Arg(0) == START_SERVER {
 		resolvers.StartServer()
 	} else if flag.Arg(0) == STOP_SERVER {
 		resolvers.StopServer()

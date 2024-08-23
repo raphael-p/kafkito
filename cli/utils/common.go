@@ -26,7 +26,7 @@ func PingWithRetry() error {
 			// if server returns an error, show it
 			return fmt.Errorf(
 				"status code %d: %s",
-				response.Error, response.Body,
+				response.StatusCode, response.Body,
 			)
 		}
 	}
