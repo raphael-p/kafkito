@@ -10,6 +10,7 @@ import (
 const HELP = "help"
 const START_SERVER = "start"
 const STOP_SERVER = "stop"
+const SERVER_INFO = "info"
 const CREATE_QUEUE = "create"
 const RENAME_QUEUE = "rename"
 const DELETE_QUEUE = "delete"
@@ -39,6 +40,8 @@ func main() {
 		resolvers.StartServer()
 	} else if flag.Arg(0) == STOP_SERVER {
 		resolvers.StopServer()
+	} else if flag.Arg(0) == SERVER_INFO {
+		resolvers.ServerInfo()
 	} else if flag.Arg(0) == HELP {
 		resolvers.DisplayHelp()
 	} else if flag.Arg(0) == CREATE_QUEUE {

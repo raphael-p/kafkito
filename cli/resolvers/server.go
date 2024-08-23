@@ -44,3 +44,22 @@ func StopServer() {
 
 	fmt.Println("kafkito was stopped")
 }
+
+func ServerInfo() {
+	response := utils.KafkitoGet("/ping/kafkito")
+
+	if response.Error != nil {
+		fmt.Println("kafkito is not running on port", utils.GetPort())
+		return
+	}
+
+	if response.StatusCode != http.StatusOK {
+		fmt.Printf(
+			"status code %d: %s\n",
+			response.StatusCode, response.Body,
+		)
+		return
+	}
+
+	fmt.Println("kafkito is runing on port", utils.GetPort())
+}
