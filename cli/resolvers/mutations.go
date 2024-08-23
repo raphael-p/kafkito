@@ -33,6 +33,22 @@ func CreateQueue(queueName string) {
 	fmt.Println("queue created:", queueName)
 }
 
+func RenameQueue(oldQueueName, newQueueName string) {
+	response := utils.KafkitoPost(
+		"/queue/"+oldQueueName+"/rename/"+newQueueName,
+		"",
+		"",
+	)
+	if handleFailure(response, http.StatusOK) {
+		return
+	}
+
+	fmt.Printf(
+		"queue renamed from %s to %s\n",
+		oldQueueName, newQueueName,
+	)
+}
+
 func DeleteQueue() {
 	fmt.Print("placeholder for 'delete' command\n")
 }

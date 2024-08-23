@@ -23,12 +23,13 @@ const CONSUME_MESSAGE = "consume"
 
 func main() {
 	flag.Parse()
+	command := flag.Arg(0)
 
 	// noop commands
 	if flag.NArg() == 0 {
 		resolvers.DisplaySeekHelp("Welcome to Kafkito!")
 		return
-	} else if flag.Arg(0) == HELP {
+	} else if command == HELP {
 		resolvers.DisplayHelp()
 		return
 	}
@@ -38,31 +39,36 @@ func main() {
 	}
 
 	// all other commands (they require a valid port)
-	if flag.Arg(0) == START_SERVER {
+	switch command {
+	case START_SERVER:
 		resolvers.StartServer()
-	} else if flag.Arg(0) == STOP_SERVER {
+	case STOP_SERVER:
 		resolvers.StopServer()
-	} else if flag.Arg(0) == SERVER_INFO {
+	case SERVER_INFO:
 		resolvers.ServerInfo()
-	} else if flag.Arg(0) == HELP {
-		resolvers.DisplayHelp()
-	} else if flag.Arg(0) == CREATE_QUEUE {
+	case CREATE_QUEUE:
 		if !validateArgs("queueName") {
-			fmt.Println("expected: kafkito create <queueName>")
+			fmt.Println("usage: kafkito create <queueName>")
 			return
 		}
 		resolvers.CreateQueue(flag.Arg(1))
-	} else if flag.Arg(0) == DELETE_QUEUE {
+	case RENAME_QUEUE:
+		if !validateArgs("oldQueueName", "newQueueName") {
+			fmt.Println("usage: kafkito rename <oldQueueName> <newQueueName>")
+			return
+		}
+		resolvers.RenameQueue(flag.Arg(1), flag.Arg(2))
+	case DELETE_QUEUE:
 		resolvers.DeleteQueue()
-	} else if flag.Arg(0) == LIST_QUEUES {
+	case LIST_QUEUES:
 		resolvers.ListQueues()
-	} else if flag.Arg(0) == PUBLISH_MESSAGE {
+	case PUBLISH_MESSAGE:
 		resolvers.PublishQueue()
-	} else if flag.Arg(0) == READ_QUEUE {
+	case READ_QUEUE:
 		resolvers.ReadMessages()
-	} else if flag.Arg(0) == CONSUME_MESSAGE {
+	case CONSUME_MESSAGE:
 		resolvers.ConsumeMessage()
-	} else {
+	default:
 		resolvers.DisplaySeekHelp("Command not recognised.")
 	}
 }
