@@ -46,16 +46,16 @@ func (m Message) ToCSVRow() string {
 }
 
 func (queues QueueMap) AddQueue(newQueueName string) error {
+	if _, ok := queues[newQueueName]; ok {
+		return errors.New(fmt.Sprint(
+			"queue already exists with name: " + newQueueName,
+		))
+	}
+
 	if len(queues) >= int(config.Values.MaxQueues) {
 		return errors.New(fmt.Sprint(
 			"too many queues, max is: ",
 			config.Values.MaxQueues,
-		))
-	}
-
-	if _, ok := queues[newQueueName]; ok {
-		return errors.New(fmt.Sprint(
-			"queue already exists with name: " + newQueueName,
 		))
 	}
 
