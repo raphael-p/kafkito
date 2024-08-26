@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -27,15 +27,19 @@ func responseErrorHandler(res *http.Response, callError error) (string, error) {
 
 	if !IsSuccessful(res.StatusCode) {
 		defer res.Body.Close()
+		var errStr string
 		errBody, err := io.ReadAll(res.Body)
 
 		if err == nil {
-			err = errors.New(string(errBody))
+			errStr = string(errBody)
+		} else {
+			errStr = err.Error()
 		}
+		errStr = strings.TrimSpace(errStr)
 
 		return "", fmt.Errorf(
 			"error: status code %d: %s",
-			res.StatusCode, err,
+			res.StatusCode, errStr,
 		)
 	}
 
@@ -76,12 +80,18 @@ func KafkitoGetCSV(endpoint string) KafkitoResponse {
 	))
 }
 
-func KafkitoPost(endpoint, reqContentType, reqBody string) KafkitoResponse {
-	var reqBodyReader io.Reader = strings.NewReader(reqBody)
+func KafkitoPost(endpoint string) KafkitoResponse {
 	return responseHandlerString(http.Post(
 		"http://localhost:"+GetPort()+endpoint,
-		reqContentType,
-		reqBodyReader,
+		"",
+		nil,
+	))
+}
+
+func KafkitoPostForm(endpoint string, data url.Values) KafkitoResponse {
+	return responseHandlerString(http.PostForm(
+		"http://localhost:"+GetPort()+endpoint,
+		data,
 	))
 }
 

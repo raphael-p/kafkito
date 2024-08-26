@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func CreateQueue(queueName string) {
-	response := utils.KafkitoPost("/queue/"+queueName, "", "")
+	response := utils.KafkitoPost("/queue/" + queueName)
 	if response.Error != nil {
 		fmt.Println(response.Error.Error())
 		return
@@ -22,9 +23,7 @@ func CreateQueue(queueName string) {
 
 func RenameQueue(oldQueueName, newQueueName string) {
 	response := utils.KafkitoPost(
-		"/queue/"+oldQueueName+"/rename/"+newQueueName,
-		"",
-		"",
+		"/queue/" + oldQueueName + "/rename/" + newQueueName,
 	)
 	if response.Error != nil {
 		fmt.Println(response.Error.Error())
@@ -79,8 +78,26 @@ func ListQueues() {
 	displayCSV(response.BodyStream, columnWidth, dataFormatter)
 }
 
-func PublishQueue() {
-	fmt.Print("placeholder for 'publish' command\n")
+func PublishMessage(queueName, header, body string) {
+	response := utils.KafkitoPostForm("/queue/"+queueName+"/publish", url.Values{
+		"header": {header},
+		"body":   {body},
+	})
+
+	if response.Error != nil {
+		fmt.Println(response.Error.Error())
+		return
+	}
+
+	messageID, err := strconv.Atoi(response.BodyString)
+	if err != nil {
+		fmt.Println("error: message ID could not be parsed from response")
+	}
+
+	fmt.Printf(
+		"published message %d with header %s to queue %s\n",
+		messageID, header, queueName,
+	)
 }
 
 func ReadMessages() {

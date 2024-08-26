@@ -23,7 +23,7 @@ func StartServer() {
 }
 
 func StopServer() {
-	response := utils.KafkitoPost("/shutdown", "", "")
+	response := utils.KafkitoPost("/shutdown")
 	if response.Error != nil {
 		fmt.Println(response.Error.Error())
 		return
