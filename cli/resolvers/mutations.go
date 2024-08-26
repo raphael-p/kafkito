@@ -2,18 +2,17 @@ package resolvers
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/raphael-p/kafkito/cli/utils"
 )
 
-func handleFailure(response utils.KafkitoResponse, successStatus int) bool {
+func handleFailure(response utils.KafkitoResponse) bool {
 	if response.Error != nil {
 		fmt.Println("error: kafkito is not running on port", utils.GetPort())
 		return true
 	}
 
-	if response.StatusCode != successStatus {
+	if !utils.IsSuccessful(response.StatusCode) {
 		fmt.Printf(
 			"error: status code %d: %s",
 			response.StatusCode, response.Body,
@@ -26,7 +25,7 @@ func handleFailure(response utils.KafkitoResponse, successStatus int) bool {
 
 func CreateQueue(queueName string) {
 	response := utils.KafkitoPost("/queue/"+queueName, "", "")
-	if handleFailure(response, http.StatusCreated) {
+	if handleFailure(response) {
 		return
 	}
 
@@ -39,7 +38,7 @@ func RenameQueue(oldQueueName, newQueueName string) {
 		"",
 		"",
 	)
-	if handleFailure(response, http.StatusOK) {
+	if handleFailure(response) {
 		return
 	}
 
@@ -49,8 +48,13 @@ func RenameQueue(oldQueueName, newQueueName string) {
 	)
 }
 
-func DeleteQueue() {
-	fmt.Print("placeholder for 'delete' command\n")
+func DeleteQueue(queueName string) {
+	response := utils.KakitoDelete("/queue/" + queueName)
+	if handleFailure(response) {
+		return
+	}
+
+	fmt.Println("queue deleted:", queueName)
 }
 
 func ListQueues() {

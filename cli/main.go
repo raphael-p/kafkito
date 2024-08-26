@@ -59,7 +59,11 @@ func main() {
 		}
 		resolvers.RenameQueue(flag.Arg(1), flag.Arg(2))
 	case DELETE_QUEUE:
-		resolvers.DeleteQueue()
+		if !validateArgs("queueName") {
+			fmt.Println("usage: kafkito delete <queueName>")
+			return
+		}
+		resolvers.DeleteQueue(flag.Arg(1))
 	case LIST_QUEUES:
 		resolvers.ListQueues()
 	case PUBLISH_MESSAGE:

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"net/http"
 	"time"
 )
 
@@ -19,7 +18,7 @@ func PingWithRetry() error {
 			// after fifth retry, show the error
 			defaultError = response.Error
 			break
-		} else if response.StatusCode == http.StatusOK {
+		} else if IsSuccessful(response.StatusCode) {
 			// happy path
 			return nil
 		} else {

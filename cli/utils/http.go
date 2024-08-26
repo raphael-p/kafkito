@@ -62,3 +62,17 @@ func KafkitoPost(endpoint, reqContentType, reqBody string) KafkitoResponse {
 		reqBodyReader,
 	))
 }
+
+func KakitoDelete(endpoint string) KafkitoResponse {
+	client := &http.Client{}
+	req, _ := http.NewRequest(
+		http.MethodDelete,
+		"http://localhost:"+GetPort()+endpoint,
+		nil,
+	)
+	return responseHandler(client.Do(req))
+}
+
+func IsSuccessful(statusCode int) bool {
+	return statusCode >= 200 && statusCode < 300
+}

@@ -2,7 +2,6 @@ package resolvers
 
 import (
 	"fmt"
-	"net/http"
 	"os/exec"
 
 	"github.com/raphael-p/kafkito/cli/utils"
@@ -34,7 +33,7 @@ func StopServer() {
 		return
 	}
 
-	if response.StatusCode != http.StatusAccepted {
+	if !utils.IsSuccessful(response.StatusCode) {
 		fmt.Printf(
 			"kafkito could not be stopped: status code %d: %s",
 			response.StatusCode, response.Body,
@@ -53,7 +52,7 @@ func ServerInfo() {
 		return
 	}
 
-	if response.StatusCode != http.StatusOK {
+	if !utils.IsSuccessful(response.StatusCode) {
 		fmt.Printf(
 			"status code %d: %s",
 			response.StatusCode, response.Body,
