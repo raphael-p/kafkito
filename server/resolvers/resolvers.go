@@ -100,7 +100,9 @@ func PublishMessage(w http.ResponseWriter, r *http.Request) {
 
 	q.Messages = append(q.Messages, message)
 	queues[q.Name] = q
+	w.Header().Add("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(fmt.Sprintf("%d", message.ID)))
 	utils.LogInfo(fmt.Sprintf(
 		"published message %d with header %s to queue %s\n",
 		message.ID, message.Header, q.Name,
