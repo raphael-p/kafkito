@@ -30,13 +30,13 @@ func CreateQueue(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteQueue(w http.ResponseWriter, r *http.Request) {
-	queueName, ok := parseQueueName(w, r, "name")
+	q, ok := getQueue(w, r, queues, "name")
 	if !ok {
 		return
 	}
 
-	delete(queues, queueName)
-	utils.LogInfo(fmt.Sprintf("queue deleted: %s\n", queueName))
+	delete(queues, q.Name)
+	utils.LogInfo(fmt.Sprintf("queue deleted: %s\n", q.Name))
 }
 
 func RenameQueue(w http.ResponseWriter, r *http.Request) {
