@@ -34,7 +34,8 @@ func main() {
 		return
 	}
 
-	if !utils.ValidatePort() {
+	if err := utils.IntialiseConfig(); err != nil {
+		fmt.Println(err.Error())
 		return
 	}
 

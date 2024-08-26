@@ -8,24 +8,6 @@ import (
 	"strings"
 )
 
-var port string
-
-func ValidatePort() bool {
-	if port == "" {
-		var err error
-		port, err = readPortNumber()
-		if err != nil {
-			fmt.Println(err.Error())
-			return false
-		}
-	}
-	return true
-}
-
-func GetPort() string {
-	return port
-}
-
 type KafkitoResponse struct {
 	StatusCode int
 	BodyStream io.ReadCloser

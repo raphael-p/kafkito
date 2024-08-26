@@ -1,7 +1,10 @@
 package resolvers
 
 import (
+	"bufio"
 	"fmt"
+	"io"
+	"math"
 	"os"
 	"os/exec"
 	"strings"
@@ -14,6 +17,42 @@ func paginate(text string) {
 	pager.Stderr = os.Stderr
 	if err := pager.Run(); err != nil {
 		fmt.Print(text)
+	}
+}
+
+type dataFormatter func(index int, data string) (string, error)
+
+func displayCSV(stream io.ReadCloser, columnWidth int, formatter dataFormatter) {
+	defer stream.Close()
+
+	scanner := bufio.NewScanner(stream)
+	headerRow := true
+	for scanner.Scan() {
+		row := scanner.Text()
+		cells := strings.Split(row, ",")
+		for index, cell := range cells {
+			if headerRow {
+				fmt.Print(cell)
+			} else {
+				data, err := formatter(index, cell)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				fmt.Print(data)
+			}
+
+			if index+1 < len(cells) {
+				spaceCount := int(math.Max(0, float64(columnWidth-len(cell)))) + 2
+				fmt.Print(strings.Repeat(" ", spaceCount))
+			}
+		}
+		headerRow = false
+		fmt.Print("\n")
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println("error: could not read CSV response:", err.Error())
 	}
 }
 

@@ -2,7 +2,10 @@ package resolvers
 
 import (
 	"fmt"
+	"math"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/raphael-p/kafkito/cli/utils"
 )
@@ -45,7 +48,7 @@ func DeleteQueue(queueName string) {
 }
 
 func ListQueues() {
-	response := utils.KafkitoGet("/queues")
+	response := utils.KafkitoGetCSV("/queues")
 	if response.Error != nil {
 		fmt.Println(response.Error.Error())
 		return
@@ -56,7 +59,24 @@ func ListQueues() {
 		return
 	}
 
-	fmt.Print(response.BodyString)
+	columnWidth := int(math.Max(
+		float64(utils.GetQueueNameMaxLength()),
+		15,
+	))
+
+	dataFormatter := func(index int, data string) (string, error) {
+		if index == 2 {
+			unixSeconds, err := strconv.Atoi(data)
+			if err != nil {
+				return "", fmt.Errorf("error: %s", err)
+			}
+			return time.Unix(int64(unixSeconds), 0).String(), nil
+		} else {
+			return data, nil
+		}
+	}
+
+	displayCSV(response.BodyStream, columnWidth, dataFormatter)
 }
 
 func PublishQueue() {
