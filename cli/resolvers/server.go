@@ -10,7 +10,7 @@ import (
 func StartServer() {
 	cmd := exec.Command("kafkitoserver")
 	if err := cmd.Start(); err != nil {
-		fmt.Println("could not execute kafkito's server binary:", err.Error())
+		fmt.Println("error: could not execute kafkito's server binary:", err.Error())
 		return
 	}
 
@@ -24,20 +24,8 @@ func StartServer() {
 
 func StopServer() {
 	response := utils.KafkitoPost("/shutdown", "", "")
-
 	if response.Error != nil {
-		fmt.Println(
-			"kafkito not available (maybe already stopped):",
-			response.Error.Error(),
-		)
-		return
-	}
-
-	if !utils.IsSuccessful(response.StatusCode) {
-		fmt.Printf(
-			"kafkito could not be stopped: status code %d: %s",
-			response.StatusCode, response.Body,
-		)
+		fmt.Println(response.Error.Error())
 		return
 	}
 
@@ -46,17 +34,8 @@ func StopServer() {
 
 func ServerInfo() {
 	response := utils.KafkitoGet("/ping/kafkito")
-
 	if response.Error != nil {
-		fmt.Println("kafkito is not running on port", utils.GetPort())
-		return
-	}
-
-	if !utils.IsSuccessful(response.StatusCode) {
-		fmt.Printf(
-			"status code %d: %s",
-			response.StatusCode, response.Body,
-		)
+		fmt.Println(response.Error.Error())
 		return
 	}
 
