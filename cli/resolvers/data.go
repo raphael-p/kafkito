@@ -1,10 +1,12 @@
 package resolvers
 
 import (
+	"bufio"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/raphael-p/kafkito/cli/utils"
 )
@@ -45,7 +47,7 @@ func DeleteQueue(queueName string) {
 }
 
 func ListQueues() {
-	response := utils.KafkitoGetCSV("/queues")
+	response := utils.KafkitoGetStream("/queues")
 	if response.Error != nil {
 		fmt.Println(response.Error.Error())
 		return
@@ -97,7 +99,7 @@ func PublishMessage(queueName, header, body string) {
 }
 
 func ReadMessages(queueName string) {
-	response := utils.KafkitoGetCSV("/queue/" + queueName + "/messages")
+	response := utils.KafkitoGetStream("/queue/" + queueName + "/messages")
 	if response.Error != nil {
 		fmt.Println(response.Error.Error())
 		return
@@ -130,6 +132,41 @@ func ReadMessages(queueName string) {
 	displayCSV(response.BodyStream, columnWidths, dataFormatter)
 }
 
-func ConsumeMessage() {
-	fmt.Print("placeholder for 'consume' command\n")
+func processMessageResponse(response utils.KafkitoResponse, messageID string) {
+	if response.Error != nil {
+		fmt.Println(response.Error.Error())
+		return
+	}
+
+	if response.StatusCode == http.StatusNoContent {
+		fmt.Println("no message found with ID: ", messageID)
+		return
+	}
+
+	stream := response.BodyStream
+	defer stream.Close()
+
+	scanner := bufio.NewScanner(stream)
+	headerRow := true
+	for scanner.Scan() {
+		if headerRow {
+			headerRow = false
+			continue
+		}
+		body := strings.Split(scanner.Text(), ",")[2]
+		fmt.Println(body)
+		return
+	}
+
+	fmt.Println("error: unexpected response") // unreachable
+}
+
+func ReadMessage(messageID string) {
+	response := utils.KafkitoGetStream("/message/" + messageID)
+	processMessageResponse(response, messageID)
+}
+
+func ConsumeMessage(messageID string) {
+	response := utils.KakitoDeleteStream("/message/" + messageID)
+	processMessageResponse(response, messageID)
 }

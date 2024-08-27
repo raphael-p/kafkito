@@ -16,9 +16,9 @@ const SERVER_INFO = "info"
 const CREATE_QUEUE = "create"
 const RENAME_QUEUE = "rename"
 const DELETE_QUEUE = "delete"
-const LIST_QUEUES = "list"
+const LIST = "list"
 const PUBLISH_MESSAGE = "publish"
-const READ_QUEUE = "read"
+const READ_MESSAGE = "read"
 const CONSUME_MESSAGE = "consume"
 
 func main() {
@@ -65,8 +65,12 @@ func main() {
 			return
 		}
 		resolvers.DeleteQueue(flag.Arg(1))
-	case LIST_QUEUES:
-		resolvers.ListQueues()
+	case LIST:
+		if flag.Arg(1) == "" {
+			resolvers.ListQueues() // list queues
+		} else {
+			resolvers.ReadMessages(flag.Arg(1)) // list messages of queue
+		}
 	case PUBLISH_MESSAGE:
 		if !validateArgs("queueName", "message_header", "message_body") {
 			fmt.Println("usage: kafkito publish <queueName> <message_header> <message_body>")
@@ -74,14 +78,18 @@ func main() {
 		}
 		message := strings.Join(flag.Args()[3:], " ")
 		resolvers.PublishMessage(flag.Arg(1), flag.Arg(2), message)
-	case READ_QUEUE:
-		if !validateArgs("queueName") {
-			fmt.Println("usage: kafkito read <queueName>")
+	case READ_MESSAGE:
+		if !validateArgs("messageID") {
+			fmt.Println("usage: kafkito read <messageID>")
 			return
 		}
-		resolvers.ReadMessages(flag.Arg(1))
+		resolvers.ReadMessage(flag.Arg(1))
 	case CONSUME_MESSAGE:
-		resolvers.ConsumeMessage()
+		if !validateArgs("messageID") {
+			fmt.Println("usage: kafkito consume <messageID>")
+			return
+		}
+		resolvers.ConsumeMessage(flag.Arg(1))
 	default:
 		resolvers.DisplaySeekHelp("Command not recognised.")
 	}

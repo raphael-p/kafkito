@@ -34,6 +34,7 @@ func displayCSV(stream io.ReadCloser, columnWidth []int, formatter dataFormatter
 			// print cell with custom formatting for non-header rows
 			var formattedCell string
 			if headerRow {
+				headerRow = false
 				formattedCell = cell
 			} else {
 				data, err := formatter(columnIndex, cell)
@@ -56,7 +57,6 @@ func displayCSV(stream io.ReadCloser, columnWidth []int, formatter dataFormatter
 				fmt.Print(strings.Repeat(" ", spaceCount))
 			}
 		}
-		headerRow = false
 		fmt.Print("\n")
 	}
 

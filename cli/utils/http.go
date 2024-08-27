@@ -74,7 +74,7 @@ func KafkitoGet(endpoint string) KafkitoResponse {
 	))
 }
 
-func KafkitoGetCSV(endpoint string) KafkitoResponse {
+func KafkitoGetStream(endpoint string) KafkitoResponse {
 	return responseHandlerStream(http.Get(
 		"http://localhost:" + GetPort() + endpoint,
 	))
@@ -103,6 +103,16 @@ func KakitoDelete(endpoint string) KafkitoResponse {
 		nil,
 	)
 	return responseHandlerString(client.Do(req))
+}
+
+func KakitoDeleteStream(endpoint string) KafkitoResponse {
+	client := &http.Client{}
+	req, _ := http.NewRequest(
+		http.MethodDelete,
+		"http://localhost:"+GetPort()+endpoint,
+		nil,
+	)
+	return responseHandlerStream(client.Do(req))
 }
 
 func IsSuccessful(statusCode int) bool {
