@@ -100,7 +100,7 @@ func PublishMessage(w http.ResponseWriter, r *http.Request) {
 
 	q.Messages = append(q.Messages, message)
 	queues[q.Name] = q
-	w.Header().Add("Content-Type", "text/plain")
+	w.Header().Add("content-type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(fmt.Sprintf("%d", message.ID)))
 	utils.LogInfo(fmt.Sprintf(
@@ -133,19 +133,24 @@ func ReadMessages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	batch := make([]queue.Message, 0, config.Values.MessageBatchSize)
-	for _, m := range q.Messages {
+	hasNext := false
+	for index, m := range q.Messages {
 		if len(batch) >= int(config.Values.MessageBatchSize) {
+			if len(q.Messages) > index+1 {
+				hasNext = true
+			}
 			break
 		}
 		if m.ID > cursorID {
 			batch = append(batch, m)
 		}
 	}
+	w.Header().Add("x-has-next", fmt.Sprintf("%t", hasNext))
 	newCursor := cursorID
 	if len(batch) > 0 {
 		newCursor = batch[len(batch)-1].ID
 	}
-	w.Header().Add("X-Cursor", fmt.Sprintf("%d", newCursor))
+	w.Header().Add("x-cursor", fmt.Sprintf("%d", newCursor))
 
 	if len(batch) == 0 {
 		w.WriteHeader(http.StatusNoContent)

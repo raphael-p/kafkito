@@ -83,7 +83,7 @@ func getQueue(w http.ResponseWriter, r *http.Request, queues queue.QueueMap, pat
 }
 
 func writeMessagesCSV(w http.ResponseWriter, messages []queue.Message) {
-	w.Header().Add("Content-Type", "text/csv")
+	w.Header().Add("content-type", "text/csv")
 	w.WriteHeader(http.StatusOK)
 	w.Write(queue.MessageCSVHeader)
 	for _, m := range messages {
@@ -92,7 +92,7 @@ func writeMessagesCSV(w http.ResponseWriter, messages []queue.Message) {
 }
 
 func writeQueuesCSV(w http.ResponseWriter, queues queue.QueueMap) {
-	w.Header().Add("Content-Type", "text/csv")
+	w.Header().Add("content-type", "text/csv")
 	w.WriteHeader(http.StatusOK)
 	w.Write(queue.QueueCSVHeader)
 	for _, q := range queues {
