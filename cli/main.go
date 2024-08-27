@@ -75,7 +75,11 @@ func main() {
 		message := strings.Join(flag.Args()[3:], " ")
 		resolvers.PublishMessage(flag.Arg(1), flag.Arg(2), message)
 	case READ_QUEUE:
-		resolvers.ReadMessages()
+		if !validateArgs("queueName") {
+			fmt.Println("usage: kafkito read <queueName>")
+			return
+		}
+		resolvers.ReadMessages(flag.Arg(1))
 	case CONSUME_MESSAGE:
 		resolvers.ConsumeMessage()
 	default:

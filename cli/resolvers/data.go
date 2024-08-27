@@ -2,11 +2,9 @@ package resolvers
 
 import (
 	"fmt"
-	"math"
 	"net/http"
 	"net/url"
 	"strconv"
-	"time"
 
 	"github.com/raphael-p/kafkito/cli/utils"
 )
@@ -58,22 +56,16 @@ func ListQueues() {
 		return
 	}
 
-	nameWidth := int(math.Max(
-		float64(utils.GetQueueNameMaxLength()),
-		float64(len("name")),
-	))
-	countWidth := len("message_count")
-	columnWidths := []int{nameWidth, countWidth, utils.TIME_CHARS}
+	columnWidths := []int{
+		utils.CalculateWidth("name", int(utils.GetQueueNameMaxLength())),
+		utils.CalculateWidth("message_count", 0),
+		utils.CalculateWidth("created_at", utils.TIME_CHAR_COUNT),
+	}
 
 	dataFormatter := func(index int, data string) (string, error) {
 		switch index {
 		case 2:
-			unixSeconds, err := strconv.Atoi(data)
-			if err != nil {
-				return "", fmt.Errorf("error: %s", err)
-			}
-			datetime := time.Unix(int64(unixSeconds), 0)
-			return utils.FormatTime(datetime), nil
+			return utils.UnixToDateTime(data)
 		default:
 			return data, nil
 		}
@@ -104,8 +96,38 @@ func PublishMessage(queueName, header, body string) {
 	)
 }
 
-func ReadMessages() {
-	fmt.Print("placeholder for 'read' command\n")
+func ReadMessages(queueName string) {
+	response := utils.KafkitoGetCSV("/queue/" + queueName + "/messages")
+	if response.Error != nil {
+		fmt.Println(response.Error.Error())
+		return
+	}
+
+	if response.StatusCode == http.StatusNoContent {
+		fmt.Println("there are no messages for", queueName)
+		return
+	}
+
+	columnWidths := []int{
+		utils.CalculateWidth("id", -1),
+		utils.CalculateWidth("header", int(utils.GetHeaderMaxLength())),
+		utils.CalculateWidth("body", utils.MAX_BODY_DISPLAY),
+		utils.CalculateWidth("created_at", utils.TIME_CHAR_COUNT),
+		utils.CalculateWidth("ttl", -1),
+	}
+
+	dataFormatter := func(index int, data string) (string, error) {
+		switch index {
+		case 2:
+			return utils.TruncateString(data, utils.MAX_BODY_DISPLAY), nil
+		case 3:
+			return utils.UnixToDateTime(data)
+		default:
+			return data, nil
+		}
+	}
+
+	displayCSV(response.BodyStream, columnWidths, dataFormatter)
 }
 
 func ConsumeMessage() {

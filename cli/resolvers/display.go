@@ -22,8 +22,6 @@ func paginate(text string) {
 
 type dataFormatter func(index int, data string) (string, error)
 
-const DEFAULT_WIDTH = 15
-
 func displayCSV(stream io.ReadCloser, columnWidth []int, formatter dataFormatter) {
 	defer stream.Close()
 
@@ -32,29 +30,29 @@ func displayCSV(stream io.ReadCloser, columnWidth []int, formatter dataFormatter
 	for scanner.Scan() {
 		row := scanner.Text()
 		cells := strings.Split(row, ",")
-		for colIdx, cell := range cells {
+		for columnIndex, cell := range cells {
 			// print cell with custom formatting for non-header rows
+			var formattedCell string
 			if headerRow {
-				fmt.Print(cell)
+				formattedCell = cell
 			} else {
-				data, err := formatter(colIdx, cell)
+				data, err := formatter(columnIndex, cell)
 				if err != nil {
 					fmt.Println(err)
 					return
 				}
-				fmt.Print(data)
+				formattedCell = data
 			}
+			fmt.Print(formattedCell)
 
 			// add consistent spacing to align the columns
-			if colIdx+1 < len(cells) {
-				var width int
-				if colIdx < len(columnWidth) {
-					width = columnWidth[colIdx]
-				} else {
-					width = DEFAULT_WIDTH
+			if columnIndex+1 < len(cells) {
+				if columnIndex >= len(columnWidth) {
+					break // new columns have been added unexpectedly
 				}
-
-				spaceCount := int(math.Max(0, float64(width-len(cell)))) + 2
+				width := columnWidth[columnIndex]
+				padding := float64(width - len(formattedCell))
+				spaceCount := int(math.Max(0, padding)) + 2
 				fmt.Print(strings.Repeat(" ", spaceCount))
 			}
 		}

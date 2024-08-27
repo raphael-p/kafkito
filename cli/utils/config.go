@@ -25,6 +25,7 @@ func getConfigDirectory() (string, error) {
 type Config struct {
 	Port         string `json:"port"`
 	MaxQueueName uint8  `json:"max_queue_name_bytes"`
+	MaxHeader    uint8  `json:"max_message_header_bytes"`
 }
 
 var config Config
@@ -51,8 +52,19 @@ func IntialiseConfig() error {
 		return fmt.Errorf("error: invalid port \"%s\"", values.Port)
 	}
 
+	makeNonZeroError := func(field string) error {
+		return fmt.Errorf(
+			"error: %s must be specified in the config file and be greater than 0",
+			field,
+		)
+	}
+
 	if values.MaxQueueName <= 0 {
-		return fmt.Errorf("error: max_queue_name_bytes must be specified in the config file and be greater than 0")
+		return makeNonZeroError("max_queue_name_bytes")
+	}
+
+	if values.MaxHeader <= 0 {
+		return makeNonZeroError("max_message_header_bytes")
 	}
 
 	config = *values
@@ -65,4 +77,8 @@ func GetPort() string {
 
 func GetQueueNameMaxLength() uint8 {
 	return config.MaxQueueName
+}
+
+func GetHeaderMaxLength() uint8 {
+	return config.MaxHeader
 }
