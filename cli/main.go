@@ -68,7 +68,7 @@ func main() {
 	case LIST_QUEUES:
 		resolvers.ListQueues()
 	case PUBLISH_MESSAGE:
-		if !validateArgs("queueName", "message") {
+		if !validateArgs("queueName", "message_header", "message_body") {
 			fmt.Println("usage: kafkito publish <queueName> <message_header> <message_body>")
 			return
 		}
