@@ -58,24 +58,28 @@ func ListQueues() {
 		return
 	}
 
-	columnWidth := int(math.Max(
+	nameWidth := int(math.Max(
 		float64(utils.GetQueueNameMaxLength()),
-		15,
+		float64(len("name")),
 	))
+	countWidth := len("message_count")
+	columnWidths := []int{nameWidth, countWidth, utils.TIME_CHARS}
 
 	dataFormatter := func(index int, data string) (string, error) {
-		if index == 2 {
+		switch index {
+		case 2:
 			unixSeconds, err := strconv.Atoi(data)
 			if err != nil {
 				return "", fmt.Errorf("error: %s", err)
 			}
-			return time.Unix(int64(unixSeconds), 0).String(), nil
-		} else {
+			datetime := time.Unix(int64(unixSeconds), 0)
+			return utils.FormatTime(datetime), nil
+		default:
 			return data, nil
 		}
 	}
 
-	displayCSV(response.BodyStream, columnWidth, dataFormatter)
+	displayCSV(response.BodyStream, columnWidths, dataFormatter)
 }
 
 func PublishMessage(queueName, header, body string) {

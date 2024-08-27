@@ -22,7 +22,9 @@ func paginate(text string) {
 
 type dataFormatter func(index int, data string) (string, error)
 
-func displayCSV(stream io.ReadCloser, columnWidth int, formatter dataFormatter) {
+const DEFAULT_WIDTH = 15
+
+func displayCSV(stream io.ReadCloser, columnWidth []int, formatter dataFormatter) {
 	defer stream.Close()
 
 	scanner := bufio.NewScanner(stream)
@@ -30,11 +32,12 @@ func displayCSV(stream io.ReadCloser, columnWidth int, formatter dataFormatter) 
 	for scanner.Scan() {
 		row := scanner.Text()
 		cells := strings.Split(row, ",")
-		for index, cell := range cells {
+		for colIdx, cell := range cells {
+			// print cell with custom formatting for non-header rows
 			if headerRow {
 				fmt.Print(cell)
 			} else {
-				data, err := formatter(index, cell)
+				data, err := formatter(colIdx, cell)
 				if err != nil {
 					fmt.Println(err)
 					return
@@ -42,8 +45,16 @@ func displayCSV(stream io.ReadCloser, columnWidth int, formatter dataFormatter) 
 				fmt.Print(data)
 			}
 
-			if index+1 < len(cells) {
-				spaceCount := int(math.Max(0, float64(columnWidth-len(cell)))) + 2
+			// add consistent spacing to align the columns
+			if colIdx+1 < len(cells) {
+				var width int
+				if colIdx < len(columnWidth) {
+					width = columnWidth[colIdx]
+				} else {
+					width = DEFAULT_WIDTH
+				}
+
+				spaceCount := int(math.Max(0, float64(width-len(cell)))) + 2
 				fmt.Print(strings.Repeat(" ", spaceCount))
 			}
 		}
