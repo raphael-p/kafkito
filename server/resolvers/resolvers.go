@@ -160,7 +160,7 @@ func ReadMessages(w http.ResponseWriter, r *http.Request) {
 	writeMessagesCSV(w, batch)
 }
 
-func ConsumeMessage(w http.ResponseWriter, r *http.Request) {
+func getMessage(w http.ResponseWriter, r *http.Request, consume bool) {
 	messageID, ok := parseMessageID(w, r)
 	if !ok {
 		return
@@ -176,8 +176,10 @@ func ConsumeMessage(w http.ResponseWriter, r *http.Request) {
 		}
 		if foundIndex > -1 {
 			writeMessagesCSV(w, []queue.Message{q.Messages[foundIndex]})
-			q.Messages = utils.RemoveFromSlice(q.Messages, foundIndex)
-			queues[q.Name] = q
+			if consume {
+				q.Messages = utils.RemoveFromSlice(q.Messages, foundIndex)
+				queues[q.Name] = q
+			}
 			utils.LogInfo(fmt.Sprintf(
 				"consumed message %d on queue %s\n",
 				messageID, q.Name,
@@ -188,4 +190,13 @@ func ConsumeMessage(w http.ResponseWriter, r *http.Request) {
 
 	errBody := fmt.Sprint("no message found with ID: ", messageID)
 	writeError(w, errBody, http.StatusNotFound)
+
+}
+
+func ReadMessage(w http.ResponseWriter, r *http.Request) {
+	getMessage(w, r, false)
+}
+
+func ConsumeMessage(w http.ResponseWriter, r *http.Request) {
+	getMessage(w, r, true)
 }

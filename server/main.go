@@ -37,6 +37,7 @@ func main() {
 	mux.HandleFunc("GET /queues", resolvers.ListQueues)
 	mux.HandleFunc("POST /queue/{name}/publish", resolvers.PublishMessage)
 	mux.HandleFunc("GET /queue/{name}/messages", resolvers.ReadMessages)
+	mux.HandleFunc("GET /message/{id}", resolvers.ReadMessage)
 	mux.HandleFunc("DELETE /message/{id}", resolvers.ConsumeMessage)
 
 	port := config.Values.Port
