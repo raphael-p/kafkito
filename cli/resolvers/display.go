@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"math"
 	"os"
 	"os/exec"
 	"strings"
@@ -20,43 +19,19 @@ func paginate(text string) {
 	}
 }
 
-type dataFormatter func(index int, data string) (string, error)
+type PrintRow func(row string, isHeader bool) bool
 
-func displayCSV(stream io.ReadCloser, columnWidth []int, formatter dataFormatter) {
+func displayCSV(stream io.ReadCloser, printRow PrintRow) {
 	defer stream.Close()
 
 	scanner := bufio.NewScanner(stream)
-	headerRow := true
+	isHeader := true
 	for scanner.Scan() {
 		row := scanner.Text()
-		cells := strings.Split(row, ",")
-		for columnIndex, cell := range cells {
-			// print cell with custom formatting for non-header rows
-			var formattedCell string
-			if headerRow {
-				headerRow = false
-				formattedCell = cell
-			} else {
-				data, err := formatter(columnIndex, cell)
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
-				formattedCell = data
-			}
-			fmt.Print(formattedCell)
-
-			// add consistent spacing to align the columns
-			if columnIndex+1 < len(cells) {
-				if columnIndex >= len(columnWidth) {
-					break // new columns have been added unexpectedly
-				}
-				width := columnWidth[columnIndex]
-				padding := float64(width - len(formattedCell))
-				spaceCount := int(math.Max(0, padding)) + 2
-				fmt.Print(strings.Repeat(" ", spaceCount))
-			}
+		if !printRow(row, isHeader) {
+			return
 		}
+		isHeader = false
 		fmt.Print("\n")
 	}
 

@@ -58,22 +58,96 @@ func ListQueues() {
 		return
 	}
 
-	columnWidths := []int{
-		utils.CalculateWidth("name", int(utils.GetQueueNameMaxLength())),
-		utils.CalculateWidth("message_count", 0),
-		utils.CalculateWidth("created_at", utils.TIME_CHAR_COUNT),
-	}
-
-	dataFormatter := func(index int, data string) (string, error) {
-		switch index {
-		case 2:
-			return utils.UnixToDateTime(data)
-		default:
-			return data, nil
+	printRow := func(row string, isHeader bool) bool {
+		cells := strings.Split(row, ",")
+		if len(cells) != 3 {
+			fmt.Println("error: expected 3 columns in CSV response, got", len(cells))
+			return false
 		}
+
+		nameWidth := utils.CalculateWidth("name", int(utils.GetQueueNameMaxLength()))
+		countWidth := utils.CalculateWidth("message_count", 0)
+		dateTimeWidth := utils.CalculateWidth("created_at", utils.TIME_CHAR_COUNT)
+
+		if isHeader {
+			utils.PrintCell("Name", nameWidth)
+			utils.PrintCell("Message Count", countWidth)
+			utils.PrintCell("Created At", dateTimeWidth)
+			return true
+		}
+
+		utils.PrintCell(cells[0], nameWidth)
+		utils.PrintCell(cells[1], countWidth)
+
+		createdTime, err := strconv.Atoi(cells[2])
+		if err != nil {
+			fmt.Println("error:", err.Error())
+			return false
+		}
+		utils.PrintCell(utils.UnixToDateTime(createdTime), dateTimeWidth)
+		return true
 	}
 
-	displayCSV(response.BodyStream, columnWidths, dataFormatter)
+	// TODO: !!!PAGING!!!
+	displayCSV(response.BodyStream, printRow)
+}
+
+func ReadMessages(queueName string) {
+	response := utils.KafkitoGetStream("/queue/" + queueName + "/messages")
+	if response.Error != nil {
+		fmt.Println(response.Error.Error())
+		return
+	}
+
+	if response.StatusCode == http.StatusNoContent {
+		fmt.Println("there are no messages for", queueName)
+		return
+	}
+
+	printRow := func(row string, isHeader bool) bool {
+		cells := strings.Split(row, ",")
+		if len(cells) != 5 {
+			fmt.Println("error: expected 5 columns in CSV response, got", len(cells))
+			return false
+		}
+
+		idWidth := utils.CalculateWidth("id", -1)
+		headerWidth := utils.CalculateWidth("header", int(utils.GetHeaderMaxLength()))
+		bodyWidth := utils.CalculateWidth("body", utils.MAX_BODY_DISPLAY)
+		dateTimeWidth := utils.CalculateWidth("created_at", utils.TIME_CHAR_COUNT)
+
+		if isHeader {
+			utils.PrintCell("ID", idWidth)
+			utils.PrintCell("Header", headerWidth)
+			utils.PrintCell("Body", bodyWidth)
+			utils.PrintCell("Created At", dateTimeWidth)
+			utils.PrintCell("Expires", dateTimeWidth)
+			return true
+		}
+
+		utils.PrintCell(cells[0], idWidth)
+		utils.PrintCell(cells[1], headerWidth)
+		utils.PrintCell(cells[2], bodyWidth)
+
+		createdTime, err := strconv.Atoi(cells[3])
+		if err != nil {
+			fmt.Println("error:", err.Error())
+			return false
+		}
+		utils.PrintCell(utils.UnixToDateTime(createdTime), dateTimeWidth)
+
+		expirySeconds, err := strconv.Atoi(cells[4])
+		if err != nil {
+			fmt.Println("error:", err.Error())
+			return false
+		}
+		expiry := createdTime + expirySeconds
+		utils.PrintCell(utils.UnixToDateTime(expiry), dateTimeWidth)
+
+		return true
+	}
+
+	displayCSV(response.BodyStream, printRow)
 }
 
 func PublishMessage(queueName, header, body string) {
@@ -96,40 +170,6 @@ func PublishMessage(queueName, header, body string) {
 		"published message %d with header %s to queue %s\n",
 		messageID, header, queueName,
 	)
-}
-
-func ReadMessages(queueName string) {
-	response := utils.KafkitoGetStream("/queue/" + queueName + "/messages")
-	if response.Error != nil {
-		fmt.Println(response.Error.Error())
-		return
-	}
-
-	if response.StatusCode == http.StatusNoContent {
-		fmt.Println("there are no messages for", queueName)
-		return
-	}
-
-	columnWidths := []int{
-		utils.CalculateWidth("id", -1),
-		utils.CalculateWidth("header", int(utils.GetHeaderMaxLength())),
-		utils.CalculateWidth("body", utils.MAX_BODY_DISPLAY),
-		utils.CalculateWidth("created_at", utils.TIME_CHAR_COUNT),
-		utils.CalculateWidth("ttl", -1),
-	}
-
-	dataFormatter := func(index int, data string) (string, error) {
-		switch index {
-		case 2:
-			return utils.TruncateString(data, utils.MAX_BODY_DISPLAY), nil
-		case 3:
-			return utils.UnixToDateTime(data)
-		default:
-			return data, nil
-		}
-	}
-
-	displayCSV(response.BodyStream, columnWidths, dataFormatter)
 }
 
 func processMessageResponse(response utils.KafkitoResponse, messageID string) {

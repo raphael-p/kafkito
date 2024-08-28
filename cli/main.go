@@ -71,6 +71,12 @@ func main() {
 		} else {
 			resolvers.ReadMessages(flag.Arg(1)) // list messages of queue
 		}
+	case READ_MESSAGE:
+		if !validateArgs("messageID") {
+			fmt.Println("usage: kafkito read <messageID>")
+			return
+		}
+		resolvers.ReadMessage(flag.Arg(1))
 	case PUBLISH_MESSAGE:
 		if !validateArgs("queueName", "message_header", "message_body") {
 			fmt.Println("usage: kafkito publish <queueName> <message_header> <message_body>")
@@ -78,12 +84,6 @@ func main() {
 		}
 		message := strings.Join(flag.Args()[3:], " ")
 		resolvers.PublishMessage(flag.Arg(1), flag.Arg(2), message)
-	case READ_MESSAGE:
-		if !validateArgs("messageID") {
-			fmt.Println("usage: kafkito read <messageID>")
-			return
-		}
-		resolvers.ReadMessage(flag.Arg(1))
 	case CONSUME_MESSAGE:
 		if !validateArgs("messageID") {
 			fmt.Println("usage: kafkito consume <messageID>")
