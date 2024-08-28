@@ -21,12 +21,17 @@ func paginate(text string) {
 
 type PrintRow func(row string, isHeader bool) bool
 
-func displayCSV(stream io.ReadCloser, printRow PrintRow) {
+func displayCSV(stream io.ReadCloser, printRow PrintRow, skipHeader bool) {
 	defer stream.Close()
 
 	scanner := bufio.NewScanner(stream)
 	isHeader := true
 	for scanner.Scan() {
+		if skipHeader && isHeader {
+			isHeader = false
+			continue
+		}
+
 		row := scanner.Text()
 		if !printRow(row, isHeader) {
 			return

@@ -88,22 +88,10 @@ func ListQueues() {
 		return true
 	}
 
-	// TODO: !!!PAGING!!!
-	displayCSV(response.BodyStream, printRow)
+	displayCSV(response.BodyStream, printRow, false)
 }
 
 func ReadMessages(queueName string) {
-	response := utils.KafkitoGetStream("/queue/" + queueName + "/messages")
-	if response.Error != nil {
-		fmt.Println(response.Error.Error())
-		return
-	}
-
-	if response.StatusCode == http.StatusNoContent {
-		fmt.Println("there are no messages for", queueName)
-		return
-	}
-
 	printRow := func(row string, isHeader bool) bool {
 		cells := strings.Split(row, ",")
 		if len(cells) != 5 {
@@ -147,7 +135,37 @@ func ReadMessages(queueName string) {
 		return true
 	}
 
-	displayCSV(response.BodyStream, printRow)
+	skipHeader := false
+	cursor := "0"
+	for {
+		response := utils.KafkitoGetStream(fmt.Sprintf(
+			"/queue/%s/messages?cursor=%s",
+			queueName, cursor,
+		))
+		if response.Error != nil {
+			fmt.Println(response.Error.Error())
+			return
+		}
+
+		if response.StatusCode == http.StatusNoContent {
+			fmt.Println("there are no messages for", queueName)
+			return
+		}
+
+		displayCSV(response.BodyStream, printRow, skipHeader)
+
+		hasNext := response.Header.Get("x-has-next")
+		if hasNext != "true" {
+			return
+		}
+		cursor = response.Header.Get("x-cursor")
+		if _, err := strconv.Atoi(cursor); err != nil || cursor == "" {
+			fmt.Println("error: malformed response, cannot get next batch")
+			return
+		}
+
+		skipHeader = true
+	}
 }
 
 func PublishMessage(queueName, header, body string) {

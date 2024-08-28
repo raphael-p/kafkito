@@ -12,6 +12,7 @@ type KafkitoResponse struct {
 	StatusCode int
 	BodyStream io.ReadCloser
 	BodyString string
+	Header     http.Header
 	Error      error
 }
 
@@ -48,24 +49,24 @@ func responseErrorHandler(res *http.Response, callError error) (string, error) {
 
 func responseHandlerString(res *http.Response, callError error) KafkitoResponse {
 	if body, err := responseErrorHandler(res, callError); err != nil {
-		return KafkitoResponse{0, nil, body, err}
+		return KafkitoResponse{0, nil, body, nil, err}
 	}
 
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return KafkitoResponse{0, nil, "", fmt.Errorf("error: %s", err)}
+		return KafkitoResponse{0, nil, "", nil, fmt.Errorf("error: %s", err)}
 	}
 
-	return KafkitoResponse{res.StatusCode, nil, string(body), nil}
+	return KafkitoResponse{res.StatusCode, nil, string(body), res.Header, nil}
 }
 
 func responseHandlerStream(res *http.Response, callError error) KafkitoResponse {
 	if body, err := responseErrorHandler(res, callError); err != nil {
-		return KafkitoResponse{0, nil, body, err}
+		return KafkitoResponse{0, nil, body, nil, err}
 	}
 
-	return KafkitoResponse{res.StatusCode, res.Body, "", nil}
+	return KafkitoResponse{res.StatusCode, res.Body, "", res.Header, nil}
 }
 
 func KafkitoGet(endpoint string) KafkitoResponse {
