@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/raphael-p/kafkito/cli/resolvers"
@@ -22,15 +23,8 @@ const READ_MESSAGE = "read"
 const CONSUME_MESSAGE = "consume"
 
 func main() {
-	flag.Parse()
-	command := flag.Arg(0)
-
-	// noop commands
-	if flag.NArg() == 0 {
+	if len(os.Args) < 2 {
 		resolvers.DisplaySeekHelp("Welcome to Kafkito!")
-		return
-	} else if command == HELP {
-		resolvers.DisplayHelp()
 		return
 	}
 
@@ -39,8 +33,12 @@ func main() {
 		return
 	}
 
-	// all other commands (they require a valid port)
+	command := os.Args[1]
+	fs := flag.NewFlagSet(command, flag.ContinueOnError)
+	fs.Parse(os.Args[2:])
 	switch command {
+	case HELP:
+		resolvers.DisplayHelp()
 	case START_SERVER:
 		resolvers.StartServer()
 	case STOP_SERVER:
@@ -48,56 +46,56 @@ func main() {
 	case SERVER_INFO:
 		resolvers.ServerInfo()
 	case CREATE_QUEUE:
-		if !validateArgs("queueName") {
+		if !validateArgs(fs, "queueName") {
 			fmt.Println("usage: kafkito create <queueName>")
 			return
 		}
-		resolvers.CreateQueue(flag.Arg(1))
+		resolvers.CreateQueue(fs.Arg(0))
 	case RENAME_QUEUE:
-		if !validateArgs("oldQueueName", "newQueueName") {
+		if !validateArgs(fs, "oldQueueName", "newQueueName") {
 			fmt.Println("usage: kafkito rename <oldQueueName> <newQueueName>")
 			return
 		}
-		resolvers.RenameQueue(flag.Arg(1), flag.Arg(2))
+		resolvers.RenameQueue(fs.Arg(0), fs.Arg(1))
 	case DELETE_QUEUE:
-		if !validateArgs("queueName") {
+		if !validateArgs(fs, "queueName") {
 			fmt.Println("usage: kafkito delete <queueName>")
 			return
 		}
-		resolvers.DeleteQueue(flag.Arg(1))
+		resolvers.DeleteQueue(fs.Arg(0))
 	case LIST:
 		if flag.Arg(1) == "" {
 			resolvers.ListQueues() // list queues
 		} else {
-			resolvers.ReadMessages(flag.Arg(1)) // list messages of queue
+			resolvers.ReadMessages(fs.Arg(0)) // list messages of queue
 		}
 	case READ_MESSAGE:
-		if !validateArgs("messageID") {
+		if !validateArgs(fs, "messageID") {
 			fmt.Println("usage: kafkito read <messageID>")
 			return
 		}
-		resolvers.ReadMessage(flag.Arg(1))
+		resolvers.ReadMessage(fs.Arg(0))
 	case PUBLISH_MESSAGE:
-		if !validateArgs("queueName", "message_header", "message_body") {
+		if !validateArgs(fs, "queueName", "message_header", "message_body") {
 			fmt.Println("usage: kafkito publish <queueName> <message_header> <message_body>")
 			return
 		}
-		message := strings.Join(flag.Args()[3:], " ")
-		resolvers.PublishMessage(flag.Arg(1), flag.Arg(2), message)
+		message := strings.Join(fs.Args()[2:], " ")
+		resolvers.PublishMessage(fs.Arg(0), fs.Arg(1), message)
 	case CONSUME_MESSAGE:
-		if !validateArgs("messageID") {
+		if !validateArgs(fs, "messageID") {
 			fmt.Println("usage: kafkito consume <messageID>")
 			return
 		}
-		resolvers.ConsumeMessage(flag.Arg(1))
+		resolvers.ConsumeMessage(fs.Arg(0))
 	default:
 		resolvers.DisplaySeekHelp("Command not recognised.")
 	}
 }
 
-func validateArgs(args ...string) bool {
+func validateArgs(fs *flag.FlagSet, args ...string) bool {
 	for idx := range args {
-		if flag.Arg(idx+1) == "" {
+		if fs.Arg(idx) == "" {
 			fmt.Println(
 				"missing arg(s):",
 				strings.Join(args[idx:], ", "),
