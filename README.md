@@ -12,6 +12,6 @@ This was built on MacOS, if you're having problems from using a different OS [th
 
 Download the kafkito `bin` directory and put it your path. The binaries where compiled on MacOS, sou you will need to recompile if you're using a different OS (see build instructions).
 
-Then, run the `kafkito help` for the full specs.
+Then, run the `kafkito help` command for the full specs.
 
 Enjoy!

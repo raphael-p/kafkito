@@ -1,7 +1,6 @@
 package resolvers
 
-var help string = `
-All commands (except help) require the config file to be properly defined, especially the port that the kafkito server should be running on.
+var help string = `All commands (except help) require the config file to be properly defined, especially the port that the kafkito server should be running on.
 
 Commands:
 	help
@@ -28,7 +27,7 @@ Commands:
 			queueName
 		usage: 'kafkito delete <queueName>'
 
-	list	- lists all queues or all messages of a queue (message body may be truncated)
+	list	- lists all queues or messages of a queue (message body may be truncated)
 		args:
 			queueName (optional)
 		usage:
