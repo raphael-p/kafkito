@@ -1,10 +1,10 @@
 {
     "port": "8083",
-    "max_queues": 3,
+    "max_queues": 20,
     "max_queue_length": 10,
     "max_queue_name_bytes": 16,
     "max_message_header_bytes": 16,
     "max_message_body_bytes": 50,
     "message_ttl": 3600,
-    "message_batch_size": 3
+    "message_batch_size": 40
 }
