@@ -75,19 +75,19 @@ func main() {
 			return
 		}
 		resolvers.ReadMessage(fs.Arg(0))
-	case PUBLISH_MESSAGE:
-		if !validateArgs(fs, "queueName", "message_header", "message_body") {
-			fmt.Println("usage: kafkito publish <queueName> <message_header> <message_body>")
-			return
-		}
-		message := strings.Join(fs.Args()[2:], " ")
-		resolvers.PublishMessage(fs.Arg(0), fs.Arg(1), message)
 	case CONSUME_MESSAGE:
 		if !validateArgs(fs, "messageID") {
 			fmt.Println("usage: kafkito consume <messageID>")
 			return
 		}
 		resolvers.ConsumeMessage(fs.Arg(0))
+	case PUBLISH_MESSAGE:
+		if !validateArgs(fs, "queueName", "messageHeader", "messageBody") {
+			fmt.Println("usage: kafkito publish <queueName> <messageHeader> <messageBody>")
+			return
+		}
+		message := strings.Join(fs.Args()[2:], " ")
+		resolvers.PublishMessage(fs.Arg(0), fs.Arg(1), message)
 	default:
 		resolvers.DisplaySeekHelp("Command not recognised.")
 	}

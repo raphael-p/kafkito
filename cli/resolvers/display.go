@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func paginate(text string) {
+func usePager(text string) {
 	pager := exec.Command("less")
 	pager.Stdin = strings.NewReader(text)
 	pager.Stdout = os.Stdout
@@ -54,5 +54,5 @@ func DisplaySeekHelp(prefix string) {
 }
 
 func DisplayHelp() {
-	paginate(help)
+	usePager(help)
 }
