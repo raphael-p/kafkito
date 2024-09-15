@@ -23,7 +23,7 @@ type config struct {
 }
 
 func ReadConfigFile() {
-	configPath := filepath.Join(utils.GetDirectory(".."), "config.json")
+	configPath := filepath.Join(utils.GetExecDirectory(".."), "config.json")
 	file, err := os.Open(configPath)
 	if err != nil {
 		panic(fmt.Sprintf("failed to open config file: %s", err))

@@ -45,7 +45,7 @@ func newLogger(out io.Writer) *log.Logger {
 var Logger *MyLogger = &MyLogger{newLogger(os.Stdout), nil, logLevel(0), 0}
 
 func openLogFile() *os.File {
-	directory := filepath.Join(GetDirectory("."), "logs")
+	directory := filepath.Join(GetExecDirectory("."), "logs")
 	name := "server.log"
 	path := filepath.Join(directory, generateFilename(name, directory))
 	logFile, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)

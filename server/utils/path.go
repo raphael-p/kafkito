@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-func GetDirectory(fallback string) string {
+func GetExecDirectory(fallback string) string {
 	if os.Args[0] == "kafkitoserver" {
 		// if executed from compiled binary, use its directory
 		ex, err := os.Executable()
